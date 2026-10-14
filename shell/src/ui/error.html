@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DSH PRO</title>
+<style>
+  :root { color-scheme: light dark; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #191919; color: #ededed;
+    display: grid; place-items: center; padding: 40px; box-sizing: border-box;
+    -webkit-app-region: drag;
+  }
+  main { max-width: 640px; width: 100%; -webkit-app-region: no-drag; }
+  main * { -webkit-app-region: no-drag; }
+  h1 { font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .lead { margin: 0 0 16px; color: #929292; font-size: 13px; line-height: 20px; }
+  pre {
+    margin: 0 0 20px; padding: 14px 16px; border-radius: 10px; overflow: auto; max-height: 42vh;
+    background: #141414; border: 1px solid #2f2f2f; color: #cfcfcf;
+    font-size: 12px; line-height: 1.55;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap;
+    word-break: break-word; user-select: text;
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  button {
+    font: inherit; font-size: 13px; line-height: 18px; height: 32px; padding: 0 14px;
+    border-radius: 8px; cursor: pointer; color: #ededed;
+    border: 1px solid #3a3a3a; background: transparent;
+  }
+  button:hover:not(:disabled) { background: #2a2a2a; }
+  button:disabled { opacity: .55; cursor: default; }
+  button.primary {
+    background: #ededed; color: #171717; border-color: #ededed; font-weight: 500;
+  }
+  button.primary:hover:not(:disabled) { background: #fff; }
+  button:focus-visible { outline: 2px solid #b8b8b8; outline-offset: 2px; }
+  @media (prefers-color-scheme: light) {
+    body { background: #fafafa; color: #202020; }
+    .lead { color: #737373; }
+    pre { background: #f3f3f3; border-color: #e5e5e5; color: #404040; }
+    button { color: #202020; border-color: #d4d4d4; }
+    button:hover:not(:disabled) { background: #efefef; }
+    button.primary { background: #171717; color: #fafafa; border-color: #171717; }
+    button.primary:hover:not(:disabled) { background: #000; }
+  }
+</style>
+<main>
+  <h1 id="t">Something went wrong</h1>
+  <p class="lead">Retry starts the runtime again. Reveal Logs opens the log this app keeps on this computer.</p>
+  <pre id="d" role="alert">No further detail was reported.</pre>
+  <div class="actions" role="group" aria-label="Recovery">
+    <button id="retry" class="primary" type="button">Retry</button>
+    <button id="logs" type="button">Reveal Logs</button>
+    <button id="copy" type="button">Copy details</button>
+  </div>
+</main>
+<script>
+  const q = new URLSearchParams(location.search)
+  if (q.get('title')) document.getElementById('t').textContent = q.get('title')
+  if (q.get('detail')) document.getElementById('d').textContent = q.get('detail')
+  const desktop = window.__DSH_DESKTOP__ || {}
+  const retry = document.getElementById('retry')
+  const logs = document.getElementById('logs')
+  const copy = document.getElementById('copy')
+  retry.addEventListener('click', async () => {
+    if (typeof desktop.retryHarness !== 'function') return
+    retry.disabled = true
+    retry.textContent = 'Restarting…'
+    try {
+      await desktop.retryHarness()
+    } catch {
+      retry.disabled = false
+      retry.textContent = 'Retry'
+    }
+  })
+  logs.addEventListener('click', async () => {
+    if (typeof desktop.revealLogs !== 'function') return
+    logs.disabled = true
+    const ok = await desktop.revealLogs().catch(() => false)
+    logs.textContent = ok ? 'Opened' : 'Could not open'
+    setTimeout(() => { logs.disabled = false; logs.textContent = 'Reveal Logs' }, 1600)
+  })
+  copy.addEventListener('click', async () => {
+    const text = document.getElementById('t').textContent + '\n\n' + document.getElementById('d').textContent
+    try {
+      await navigator.clipboard.writeText(text)
+      copy.textContent = 'Copied'
+    } catch {
+      const range = document.createRange()
+      range.selectNodeContents(document.getElementById('d'))
+      const selection = getSelection()
+      selection.removeAllRanges()
+      selection.addRange(range)
+      copy.textContent = document.execCommand('copy') ? 'Copied' : 'Select and press Cmd+C'
+    }
+    setTimeout(() => { copy.textContent = 'Copy details' }, 1500)
+  })
+</script>

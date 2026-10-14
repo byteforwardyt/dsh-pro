@@ -1,0 +1,32 @@
+{
+  "name": "dsh-desktop-root",
+  "private": true,
+  "version": "0.1.66",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "devDependencies": {
+    "@lobehub/icons-static-svg": "1.94.0"
+  },
+  "scripts": {
+    "prestart": "node scripts/native-conversation-delegate.cjs --development",
+    "start": "cd shell && npx electron .",
+    "icons": "node scripts/sync-icons.cjs",
+    "icons:check": "node scripts/sync-icons.cjs --check",
+    "make-icon": "shell/node_modules/.bin/electron scripts/make-icon.cjs",
+    "test": "node scripts/sync-icons.cjs --check && node --test plugins/auth-allowlist/test/*.test.js plugins/client-ui-media/test/*.test.js plugins/client-ui-supercode/test/*.test.js plugins/host-auth-api/test/*.test.js plugins/host-diagnostics/test/*.test.js plugins/host-files-api/test/*.test.js plugins/terminal/test/*.test.js plugins/tool-dispatch/test/*.test.js plugins/computer-use/test/*.test.js plugins/development-setup/test/*.test.js shell/test/*.test.js scripts/test/*.test.cjs && node scripts/bump-check.cjs",
+    "stage": "node scripts/stage-harness.cjs",
+    "pack": "node scripts/stage-harness.cjs --arch arm64 && node scripts/stage-harness.cjs --arch x64 && node scripts/generate-notices.cjs && cd shell && npx electron-builder --mac --arm64 --x64 --publish never",
+    "bump-check": "node scripts/bump-check.cjs",
+    "stage:all": "node scripts/stage-harness.cjs --arch arm64 && node scripts/stage-harness.cjs --arch x64",
+    "notices": "node scripts/generate-notices.cjs",
+    "verify": "./scripts/verify-release.sh",
+    "notarize": "./scripts/notarize.sh",
+    "release": "DSHPRO_NOTARIZE=1 npm run pack && ./scripts/notarize.sh && ./scripts/verify-release.sh",
+    "stage:linux": "node scripts/stage-harness.cjs --platform linux --arch x64",
+    "pack:linux": "node scripts/stage-harness.cjs --platform linux --arch x64 && node scripts/generate-notices.cjs && cd shell && npx electron-builder --linux --x64 --publish never"
+  }
+}

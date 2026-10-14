@@ -1,0 +1,40 @@
+{
+  "name": "@dsh-desktop/client-ui-inspector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@dsh-desktop/client-ui-theme-holo": "workspace:*",
+    "@dsh-desktop/client-ui-files": "workspace:*",
+    "@dsh-desktop/client-ui-media": "workspace:*",
+    "@dsh-desktop/computer-use": "workspace:*",
+    "@dsh-desktop/development-setup": "workspace:*"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@dsh-desktop/client-ui-theme-holo",
+        "@dsh-desktop/client-ui-files",
+        "@dsh-desktop/client-ui-media",
+        "@dsh-desktop/computer-use",
+        "@dsh-desktop/development-setup"
+      ],
+      "external": [
+        "@dsh-desktop/client-ui-theme-holo",
+        "@dsh-desktop/client-ui-files",
+        "@dsh-desktop/client-ui-media",
+        "@dsh-desktop/computer-use",
+        "@dsh-desktop/development-setup"
+      ]
+    }
+  }
+}

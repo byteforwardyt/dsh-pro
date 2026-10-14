@@ -1,0 +1,82 @@
+'use strict'
+const {test}=require('node:test')
+const assert=require('node:assert/strict')
+const fs=require('node:fs')
+const path=require('node:path')
+const os=require('node:os')
+const {translateSettings,migrateSettings,preflightLegacy,parser}=require('../src/upstream-migration.cjs')
+const {ensureProfile}=require('../src/profile.cjs')
+const anchor=path.resolve(__dirname,'..')
+function fixture(t){
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'dsh-migration-test-'))
+ t.after(()=>fs.rmSync(home,{recursive:true,force:true}))
+ const dir=path.join(home,'profiles/dsh-pro');fs.mkdirSync(dir,{recursive:true})
+ return {home,dir}
+}
+test('settings migration preserves provider details, model choices, permission and UI preferences',t=>{
+ const {home,dir}=fixture(t),yaml=parser(anchor)
+ const settings={
+  'llm-pi-ai':{providers:{fixture:{baseURL:'http://127.0.0.1:9000/v1',apiKeyEnv:'FIXTURE_ONLY',models:[{id:'fixture'}]}}},
+  'agent-default-model':{provider:'fixture',model:'fixture',reasoningEffort:'high'},
+  permission:{defaultPreset:'danger-full-access'},'desktop-model-visibility':{selections:{fixture:['fixture']}},
+  'ui-theme':{preference:'dark'},'agent-presets':{default:'dsh-agent'},'ui-onboarding':{welcomeNoticeVersion:1},
+ }
+ const source=JSON.stringify(settings);fs.writeFileSync(path.join(home,'settings.yaml'),source,{mode:0o600})
+ const credentials=path.join(home,'.credentials.yaml');fs.writeFileSync(credentials,'fixture sentinel',{mode:0o600})
+ const session=path.join(home,'session-sentinel');fs.writeFileSync(session,'unchanged')
+ assert.equal(migrateSettings(home,dir,anchor),true)
+ const rows=yaml.load(fs.readFileSync(path.join(dir,'cordis.patch.yml'),'utf8'))
+ for(const id of ['llm-pi-ai','agent-default-model','permission','desktop-model-visibility','ui-theme'])
+   assert.deepEqual(rows.find(row=>row.id===id).config,settings[id])
+ assert.equal(rows.find(row=>row.id==='agent-preset-registry').config.selectedDefault,'dsh-agent')
+ assert.equal(fs.existsSync(path.join(home,'settings.yaml')),false)
+ assert.equal(fs.readFileSync(path.join(home,'migration-backup-0.2/settings.yaml'),'utf8'),source)
+ assert.equal(fs.statSync(path.join(dir,'cordis.patch.yml')).mode&0o777,0o600)
+ assert.equal(fs.readFileSync(credentials,'utf8'),'fixture sentinel')
+ assert.equal(fs.readFileSync(session,'utf8'),'unchanged')
+ assert.equal(migrateSettings(home,dir,anchor),false)
+ fs.writeFileSync(path.join(home,'settings.yaml'),source)
+ assert.throws(()=>migrateSettings(home,dir,anchor),/reappeared/)
+})
+test('invalid legacy data cannot be renamed away or erase an existing patch',t=>{
+ const {home,dir}=fixture(t),source=path.join(home,'settings.yaml'),patch=path.join(dir,'cordis.patch.yml')
+ fs.writeFileSync(source,'invalid: [')
+ fs.writeFileSync(patch,'[]\n')
+ assert.throws(()=>migrateSettings(home,dir,anchor))
+ assert.equal(fs.readFileSync(source,'utf8'),'invalid: [')
+ assert.equal(fs.readFileSync(patch,'utf8'),'[]\n')
+ assert.throws(()=>translateSettings(['invalid']),/mapping/)
+})
+test('a conflicting import backup leaves settings and the user patch untouched',t=>{
+ const {home,dir}=fixture(t),source=path.join(home,'settings.yaml'),patch=path.join(dir,'cordis.patch.yml')
+ fs.writeFileSync(source,'permission: {}\n');fs.writeFileSync(patch,'[]\n')
+ const backup=path.join(home,'migration-backup-0.2');fs.mkdirSync(backup)
+ fs.writeFileSync(path.join(backup,'settings.import-source.yaml'),'different settings')
+ assert.throws(()=>migrateSettings(home,dir,anchor),/different legacy settings original/)
+ assert.equal(fs.readFileSync(source,'utf8'),'permission: {}\n')
+ assert.equal(fs.readFileSync(patch,'utf8'),'[]\n')
+})
+test('new profile relaunch preserves user patches and installed bundle declarations',t=>{
+ const {home,dir}=fixture(t)
+ ensureProfile(home,anchor)
+ const manifest=path.join(dir,'package.json'),data=JSON.parse(fs.readFileSync(manifest,'utf8'))
+ data.dependencies={'fixture-plugin':'1.0.0'};data.dsh.profile.bundles.push('fixture-plugin')
+ fs.writeFileSync(manifest,JSON.stringify(data))
+ const patch='- id: ui-theme\n  config:\n    preference: dark\n';fs.writeFileSync(path.join(dir,'cordis.patch.yml'),patch)
+ ensureProfile(home,anchor)
+ const current=JSON.parse(fs.readFileSync(manifest,'utf8'))
+ assert.deepEqual(current.dependencies,data.dependencies)
+ assert.ok(current.dsh.profile.bundles.includes('fixture-plugin'))
+ assert.equal(fs.readFileSync(path.join(dir,'cordis.patch.yml'),'utf8'),patch)
+})
+test('unported legacy extensions fail before settings or old profile can be changed',t=>{
+ const {home}=fixture(t),dir=path.join(home,'.agent-presets/custom')
+ fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,'agent.cordis.yml'),'custom-owned')
+ fs.writeFileSync(path.join(home,'settings.yaml'),'permission: {}\n')
+ assert.throws(()=>ensureProfile(home,anchor),/custom legacy agent preset/)
+ assert.equal(fs.readFileSync(path.join(dir,'agent.cordis.yml'),'utf8'),'custom-owned')
+ assert.equal(fs.readFileSync(path.join(home,'settings.yaml'),'utf8'),'permission: {}\n')
+ const other=fixture(t),legacy=path.join(other.home,'profiles/desktop');fs.mkdirSync(legacy,{recursive:true})
+ fs.writeFileSync(path.join(legacy,'package.json'),JSON.stringify({dependencies:{custom:'1.0.0'}}))
+ assert.throws(()=>preflightLegacy(other.home),/custom plugins/)
+})

@@ -1,0 +1,59 @@
+packages:
+  - shell
+  - plugins/*
+
+# pnpm 11 reads allowBuilds ONLY from here, never from package.json.
+# Mirrors upstream's policy: deny by default, allow exactly what the runtime needs.
+# dsh-subprocess-local's postinstall restores the exec bit on node-pty's macOS spawn helper.
+allowBuilds:
+  electron: true
+  esbuild: true
+  node-pty: true
+  koffi: true
+  '@deepseek-ai/dsh-subprocess-local': true
+  '@google/genai': false
+  protobufjs: false
+  node-addon-require-builtin: false
+  # Pulled in by electron-builder for the Windows installer, which this build
+  # does not produce. Its postinstall is not needed.
+  electron-winstaller: false
+
+# Upstream ships release candidates; don't hold them back.
+minimumReleaseAge: 0
+
+# electron-builder pulls @electron/rebuild@3.x, which resolves @electron/node-gyp
+# from a GIT repository. pnpm's blockExoticSubdeps guard refuses that, correctly.
+# The same package is published to the registry, so we pin it there rather than
+# turning the guard off for the whole workspace.
+#
+# We never actually rebuild: every native module in the closure is Node-API and
+# therefore ABI-stable across Node and Electron (verified — see
+# docs/PHASE0-FINDINGS.md), and the builder config sets npmRebuild: false.
+overrides:
+  '@electron/node-gyp': '10.2.0-electron.2'
+
+# Both macOS architectures' native optional dependencies, in one install.
+#
+# koffi, sharp and node-addon-require-builtin resolve to
+# `<name>-darwin-<arch>` optional deps, and pnpm installs only the HOST's by
+# default. Staging an x64 tree from an arm64-only install silently produces a
+# binary that dies on Intel with MODULE_NOT_FOUND — silently, because nothing
+# in the build fails, the missing package is simply never referenced until an
+# Intel user launches the app.
+#
+# Declaring both here is what makes `stage-harness.cjs --arch x64` honest on an
+# Apple Silicon machine: the x64 packages are really on disk, not assumed.
+# stage-harness verifies each expected directory exists and refuses if not.
+supportedArchitectures:
+  os:
+    - darwin
+    - linux
+  cpu:
+    - arm64
+    - x64
+  # Linux slices resolve the glibc (-gnu) variants — node-addon-require-builtin
+  # is published as -linux-<arch>-gnu, and sharp/koffi ship glibc builds. The
+  # AppImage targets mainstream glibc distros (Ubuntu/Debian/Fedora), not musl
+  # (Alpine).
+  libc:
+    - glibc

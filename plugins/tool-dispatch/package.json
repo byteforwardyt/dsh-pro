@@ -1,0 +1,16 @@
+{
+  "name": "@dsh-desktop/tool-dispatch",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "A model-facing tool that hands a task to another coding-agent CLI",
+  "main": "lib/tool.js",
+  "exports": {
+    ".": "./lib/tool.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.0-rc.2"
+  }
+}

@@ -1,0 +1,45 @@
+node_modules/
+.pnpm-store/
+dist/
+out/
+release/
+staging/
+.dsh-home/
+spike/
+.captures/
+*.log
+.DS_Store
+__pycache__/
+*.pyc
+.env
+.env.*
+*.p8
+*.pem
+*.p12
+*.pfx
+AuthKey_*
+
+# Local only. Not part of the public app source.
+site/
+videos/
+docs/
+SIGNING.md
+DeepSeek-Harness-source-notes.md
+DeepSeek-Harness-ByteForward-clean-script.txt
+scripts/deploy-site.sh
+scripts/deploy-preflight.cjs
+scripts/deploy.local.env
+scripts/deploy.local.env.example
+scripts/site-server.cjs
+scripts/verify-site.cjs
+scripts/write-version-feed.cjs
+scripts/render-cards.cjs
+scripts/test/deploy-site.test.cjs
+scripts/test/site-static-background.py
+scripts/test/supercode-live.cjs
+scripts/release.local.env
+
+# Icon build intermediates. The tracked .icns is required; electron-builder
+# silently falls back to the stock icon when it is missing.
+build/icon/DSHPro.iconset/
+build/icon/mark-128.b64

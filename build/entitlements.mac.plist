@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    V8 allocates its code pages with MAP_JIT, and this is what authorizes that
+    under the hardened runtime. This binary JITs in two roles: Electron's main
+    process runs Node and V8 directly, and the harness is this same executable
+    re-launched as Node (shell/src/host-process.cjs spawns process.execPath with
+    ELECTRON_RUN_AS_NODE), so it is governed by this file too.
+
+    Four entitlements were dropped here after an audit of the shipped 0.1.24
+    bundle. Each removal, and what it rested on:
+
+      allow-unsigned-executable-memory — V8 needs MAP_JIT, not plain RWX.
+        Chrome's universal renderer and GPU helpers on this machine ship
+        allow-jit alone, x86_64 slice included. koffi's own shipped docs
+        (node_modules/koffi/doc/callbacks.md) state it uses static trampolines
+        and generates no code at runtime, and the only koffi.load() in the tree
+        loads kernel32.dll on Windows.
+
+      disable-library-validation — build/afterPack.cjs stages the harness
+        closure BEFORE electron-builder signs, so every native artifact in
+        Contents/Resources/harness is re-signed with this app's identity. Ten
+        were checked individually (sharp, libvips, koffi, cua-driver's runtime
+        and dylib, rg, pty.node, spawn-helper and the rest) and all reported
+        the app signing team. Library validation accepts same-team and Apple code,
+        which covers all of it. spawn-helper is exec'd as its own process and
+        links only libSystem and libc++, so the parent's validation state never
+        applies to it.
+
+      allow-dyld-environment-variables — ELECTRON_RUN_AS_NODE is not a dynamic
+        linker variable and the hardened runtime does not filter it. Nothing in
+        this repo sets any DYLD_ variable; host-process.cjs strips the whole
+        DYLD_ prefix from the harness child. Keeping this re-permitted
+        DYLD_INSERT_LIBRARIES against a hardened binary, which is the opposite
+        of what that code is for.
+
+      com.apple.security.inherit — an App Sandbox entitlement, inert without
+        com.apple.security.app-sandbox, which this Developer ID build does not
+        set. Its comment claimed spawned shells "inherit the sandbox decision";
+        there was no sandbox decision to inherit. Apple also places this key on
+        nested helpers, never on a main bundle.
+
+    The one thing to watch: if the harness ever loads a native addon from a
+    user's project folder rather than from inside this bundle, library
+    validation will refuse it. Restore disable-library-validation HERE only,
+    not in the inherit file.
+  -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+</dict>
+</plist>

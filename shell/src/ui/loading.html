@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Starting DSH PRO</title>
+<style>
+  :root{color-scheme:light dark}
+  html,body{height:100%;margin:0;overflow:hidden}
+  body{display:grid;place-items:center;background:#191919;color:#ededed;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;user-select:none;-webkit-app-region:drag}
+  .card{display:grid;justify-items:center;gap:30px;-webkit-app-region:no-drag;animation:arrive .7s ease-out both}
+  .word{display:flex;align-items:center;gap:12px;font-size:40px;line-height:1;font-weight:600;letter-spacing:-1.5px}
+  .pro{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;padding:5px 9px;border-radius:5px;border:1px solid #efe5ffb3;color:#302443;background:linear-gradient(115deg,#cfc2fa 0%,#ead8f0 22%,#c8eeee 43%,#f5e5ce 65%,#ddd0f9 83%,#cfc2fa 100%);box-shadow:inset 0 1px 0 #ffffffb3,inset 0 -1px 0 #80629c26;font-size:13px;line-height:18px;font-weight:750;letter-spacing:.1em}
+  .pro::after{content:"";position:absolute;inset:-25% auto -25% 0;width:60%;background:linear-gradient(90deg,transparent,#ffffffb3,transparent);transform:translateX(-180%) skewX(-22deg);animation:shimmer 5.8s ease-in-out infinite;pointer-events:none}
+  .status{display:flex;align-items:center;gap:10px;color:#929292;font-size:12px;line-height:18px}
+  .spinner{width:12px;height:12px;border:1.5px solid #ffffff20;border-top-color:#b8b8b8;border-radius:50%;animation:spin .9s linear infinite}
+  .caption{position:fixed;bottom:28px;color:#737373;font-size:11px;letter-spacing:.015em}
+  @keyframes arrive{from{opacity:0;transform:translateY(5px)}}
+  @keyframes shimmer{0%,45%{transform:translateX(-180%) skewX(-22deg)}80%,100%{transform:translateX(300%) skewX(-22deg)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(prefers-color-scheme:light){body{background:#fafafa;color:#202020}.status{color:#737373}.spinner{border-color:#00000014;border-top-color:#555}.pro{border-color:#9e88bf80}}
+  @media(prefers-reduced-motion:reduce){.card,.pro::after,.spinner{animation:none}.spinner{border-top-color:#b8b8b8}.pro::after{display:none}}
+</style>
+<main class="card" aria-label="Starting DSH PRO">
+  <div class="word">DSH <span class="pro">PRO</span></div>
+  <div class="status" role="status"><span class="spinner" aria-hidden="true"></span>Preparing your workspace…</div>
+</main>
+<div class="caption">DeepSeek Harness</div>
+<script>
+  // Main awaits this before navigating away, so a fast host cannot cut off audio.
+  window.startupSoundFinished = new Promise(function (resolve) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return resolve('skipped');
+    var startupSound, watchdog, finished = false, position = 0, progressedAt = performance.now();
+    function finish(reason) {
+      if (finished) return;
+      finished = true;
+      clearInterval(watchdog);
+      if (startupSound) {
+        startupSound.removeEventListener('ended', ended);
+        startupSound.removeEventListener('error', failed);
+        startupSound.removeEventListener('timeupdate', progress);
+        if (reason !== 'ended') startupSound.pause();
+      }
+      resolve(reason);
+    }
+    function ended() { finish('ended'); }
+    function failed() { finish('unavailable'); }
+    function progress() {
+      if (startupSound.currentTime > position) {
+        position = startupSound.currentTime;
+        progressedAt = performance.now();
+      }
+    }
+    try {
+      startupSound = new Audio('loading.mp3');
+      startupSound.volume = 0.45;
+      startupSound.addEventListener('ended', ended);
+      startupSound.addEventListener('error', failed);
+      startupSound.addEventListener('timeupdate', progress);
+      // Only stalled playback times out. A healthy longer sound plays to its end.
+      watchdog = setInterval(function () {
+        if (performance.now() - progressedAt >= 10000) finish('stalled');
+      }, 1000);
+      startupSound.play().catch(failed);
+    } catch (_) { failed(); }
+  });
+</script>
+</html>

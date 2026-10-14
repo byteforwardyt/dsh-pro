@@ -1,0 +1,27 @@
+{
+  "name": "@dsh-desktop/client-ui-agent-default",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-settings": "0.2.0-rc.2",
+    "@deepseek-ai/schemastery": "3.18.4",
+    "@dsh-desktop/client-ui-model-visibility": "workspace:*"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-agent-preset",
+        "@dsh-desktop/client-ui-model-visibility"
+      ]
+    }
+  }
+}

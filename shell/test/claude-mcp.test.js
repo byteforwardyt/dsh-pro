@@ -1,0 +1,12 @@
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
+const { claudeMcpPatch } = require('../src/claude-mcp.cjs')
+test('Claude tools use the stdio MCP client, never a token import', () => {
+  assert.equal(claudeMcpPatch(null), '')
+  const patch = claudeMcpPatch('/a path/claude')
+  assert.match(patch, /serverName: claude_code/)
+  assert.match(patch, /command: "\/a path\/claude"/)
+  assert.match(patch, /args: \[mcp, serve\]/)
+  assert.match(patch, /failOnStartupError: false/)
+  assert.doesNotMatch(patch, /apiKey|accessToken|refreshToken/)
+})

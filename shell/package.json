@@ -1,0 +1,127 @@
+{
+  "name": "@dsh-desktop/shell",
+  "private": true,
+  "version": "0.1.66",
+  "description": "DSH PRO — Enhanced Desktop Edition for DeepSeek Harness",
+  "license": "MIT",
+  "main": "src/main.cjs",
+  "scripts": {
+    "prestart": "node ../scripts/native-conversation-delegate.cjs --development",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-mcp-client": "0.2.0-rc.2",
+    "@dsh-desktop/auth-allowlist": "workspace:*",
+    "@dsh-desktop/client-ui-accounts": "workspace:*",
+    "@dsh-desktop/client-ui-model-visibility": "workspace:*",
+    "@dsh-desktop/client-ui-supercode": "workspace:*",
+    "@dsh-desktop/client-ui-agent-default": "workspace:*",
+    "@dsh-desktop/client-ui-brand": "workspace:*",
+    "@dsh-desktop/client-ui-byteforward": "workspace:*",
+    "@dsh-desktop/client-ui-files": "workspace:*",
+    "@dsh-desktop/client-ui-inspector": "workspace:*",
+    "@dsh-desktop/client-ui-media": "workspace:*",
+    "@dsh-desktop/client-ui-notify": "workspace:*",
+    "@dsh-desktop/client-ui-phone": "workspace:*",
+    "@dsh-desktop/client-ui-preview": "workspace:*",
+    "@dsh-desktop/client-ui-reset": "workspace:*",
+    "@dsh-desktop/client-ui-theme-holo": "workspace:*",
+    "@dsh-desktop/client-ui-usage": "workspace:*",
+    "@dsh-desktop/client-ui-workspace-tools": "workspace:*",
+    "@dsh-desktop/client-ui-workspaces": "workspace:*",
+    "@dsh-desktop/host-auth-api": "workspace:*",
+    "@dsh-desktop/host-diagnostics": "workspace:*",
+    "@dsh-desktop/host-files-api": "workspace:*",
+    "@dsh-desktop/terminal": "workspace:*",
+    "@dsh-desktop/tool-dispatch": "workspace:*",
+    "@trycua/cua-driver": "0.24.0",
+    "@dsh-desktop/computer-use": "workspace:*",
+    "@dsh-desktop/development-setup": "workspace:*"
+  },
+  "devDependencies": {
+    "electron": "44.0.0",
+    "electron-builder": "26.0.12"
+  },
+  "productName": "DSH PRO",
+  "build": {
+    "appId": "pro.digitaldive.dshpro",
+    "productName": "DSH PRO",
+    "directories": {
+      "output": "../release",
+      "buildResources": "../build"
+    },
+    "mac": {
+      "icon": "../build/icon/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "../build/entitlements.mac.plist",
+      "entitlementsInherit": "../build/entitlements.mac.inherit.plist",
+      "extendInfo": {
+        "NSDesktopFolderUsageDescription": "DSH PRO needs access so the assistant can read and edit files in a project folder you choose on your Desktop.",
+        "NSDocumentsFolderUsageDescription": "DSH PRO needs access so the assistant can read and edit files in a project folder you choose in Documents.",
+        "NSDownloadsFolderUsageDescription": "DSH PRO needs access so the assistant can read and edit files in a project folder you choose in Downloads.",
+        "NSRemovableVolumesUsageDescription": "DSH PRO needs access so the assistant can work with a project folder on an external drive.",
+        "NSAppleEventsUsageDescription": "DSH PRO uses automation to interact with apps you ask it to control when computer use is enabled."
+      },
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "notarize": false,
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "linux": {
+      "icon": "../build/icons",
+      "category": "Development",
+      "synopsis": "DeepSeek Harness as a desktop app",
+      "description": "A desktop app for DeepSeek Harness. Sign in with OAuth or your own API key, preview in a built-in browser, and edit files in the app. Not affiliated with, endorsed by, or an official release of DeepSeek or DeepSeek Harness.",
+      "executableName": "dsh-pro",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "asar": true,
+    "files": [
+      "src/**/*",
+      "package.json",
+      "!node_modules/**"
+    ],
+    "npmRebuild": false,
+    "afterPack": "../build/afterPack.cjs",
+    "extraResources": [
+      {
+        "from": "../LICENSE",
+        "to": "LICENSE"
+      },
+      {
+        "from": "../THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "from": "node_modules/electron/dist/LICENSE",
+        "to": "LICENSE.electron"
+      },
+      {
+        "from": "node_modules/electron/dist/LICENSES.chromium.html",
+        "to": "LICENSES.chromium.html"
+      }
+    ],
+    "afterSign": "../build/afterSign.cjs"
+  },
+  "author": {
+    "name": "Byte Forward"
+  }
+}

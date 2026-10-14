@@ -1,0 +1,29 @@
+{
+  "name": "@dsh-desktop/client-ui-usage",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "A Usage settings page: tokens over time, by model, as a heat map",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@dsh-desktop/client-ui-accounts"
+      ],
+      "platform": "web",
+      "external": [
+        "@dsh-desktop/client-ui-accounts"
+      ]
+    }
+  },
+  "dependencies": {
+    "@dsh-desktop/client-ui-accounts": "workspace:*"
+  }
+}

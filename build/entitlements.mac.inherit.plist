@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Nested signable items, kept separate from the main app's file.
+
+    electron-builder applies this to every nested Mach-O it signs, not just the
+    four helper .app bundles: verified on the shipped 0.1.24 bundle, the same
+    entitlements had landed on node-pty's spawn-helper and on @vscode/ripgrep's
+    rg. A ripgrep binary was signed with disable-library-validation because one
+    file served both roles.
+
+    allow-jit is here for the Renderer and GPU helpers, which run V8 and Skia.
+    It is inert on spawn-helper, on rg, and on the .node and .dylib payloads,
+    none of which JIT and none of which need an entitlement to load once they
+    carry this app's own team signature.
+
+    Anything the harness process turns out to need belongs in
+    entitlements.mac.plist instead. The harness child IS the main binary, so
+    there is never a reason to widen this file to reach it.
+  -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+</dict>
+</plist>

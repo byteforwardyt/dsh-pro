@@ -1,0 +1,35 @@
+{
+  "name": "@dsh-desktop/client-ui-workspace-tools",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Desktop navigation, workspace tools and session schedule management",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-schedule": "0.2.0-rc.2",
+    "@dsh-desktop/host-files-api": "workspace:*",
+    "@dsh-desktop/client-ui-files": "workspace:*",
+    "@dsh-desktop/client-ui-preview": "workspace:*"
+  },
+  "dsh": {
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@dsh-desktop/client-ui-files",
+        "@dsh-desktop/client-ui-preview"
+      ],
+      "platform": "web",
+      "external": [
+        "@dsh-desktop/client-ui-files",
+        "@dsh-desktop/client-ui-preview"
+      ]
+    }
+  }
+}

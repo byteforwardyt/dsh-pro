@@ -1,0 +1,22 @@
+{
+  "name": "@dsh-desktop/host-auth-api",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "HTTP surface for the dsh-authorization seam: account state, login attempts, notices and prompts",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./optional-deepseek": "./lib/optional-deepseek.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-llm-deepseek-api-key": "0.2.0-rc.2",
+    "@earendil-works/pi-ai": "0.87.1",
+    "@deepseek-ai/dsh-authorization": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-credentials": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-settings": "0.2.0-rc.2",
+    "@dsh-desktop/host-files-api": "workspace:*"
+  }
+}
