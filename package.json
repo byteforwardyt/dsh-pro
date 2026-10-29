@@ -1,7 +1,7 @@
 {
   "name": "dsh-desktop-root",
   "private": true,
-  "version": "0.1.66",
+  "version": "0.1.68",
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@11.7.0",
@@ -9,6 +9,7 @@
     "node": "^22.19.0 || >=24.0.0"
   },
   "devDependencies": {
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-rc.4",
     "@lobehub/icons-static-svg": "1.94.0"
   },
   "scripts": {

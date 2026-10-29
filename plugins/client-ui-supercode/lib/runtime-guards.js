@@ -58,7 +58,7 @@ export function installRuntimeGuards({ ctx, lookup, admission, reserveCall, emit
     }))
     if (policy) return policy
     if (kind !== 'tool') return undefined
-    if (grant.mode === 'chat' && !CHAT_TOOLS.includes(toolName)) return 'This is a conversation-only turn. Workspace investigation and task tools are not available.'
+    if (grant.mode === 'chat' && !CHAT_TOOLS.includes(toolName)) return 'This is a conversation-only turn (only supercode_post, supercode_room_read, and supercode_start_plan are available). Do not retry workspace, setup, or shell tools: if the user asked to inspect or change the workspace, the lead must call supercode_start_plan with the current user messageId and end its turn; otherwise reply directly in plain text now.'
     const access = toolAccess(toolName, args)
     if (access === 'forbidden') return 'Use SuperCode room tools; independent delegation and persistent background work are disabled.'
     if ((toolName === 'bash' || toolName === 'pwsh') && args?.run_in_background === true) return 'SuperCode commands must run in the foreground.'
@@ -88,6 +88,7 @@ export function installRuntimeGuards({ ctx, lookup, admission, reserveCall, emit
   disposers.push(ctx.on('tools/result', (exec, result) => {
     const record = lookup(exec.agent)
     if (!record?.grant) return
+    if (record.grant.mode === 'chat' && result.isError && !CHAT_TOOLS.includes(exec.name)) return
     emit(record.roomId, {
       type: 'tool', memberId: record.memberId, taskId: record.grant.taskId,
       name: exec.name, text: result.isError ? 'Tool failed or was denied.' : 'Tool completed.',

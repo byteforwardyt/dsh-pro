@@ -799,6 +799,7 @@ window.__ModuleLoader__.load({
         h("button", { type: "button", className: "dshd-tm-toggle",
           "data-dshd-terminal-toggle": "", "aria-expanded": String(open),
           "aria-label": open ? "Close terminal" : "Open terminal",
+          title: open ? "Close terminal" : "Open terminal",
           onClick: () => setOpen(value => !value) },
           h('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7,
             strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true, focusable: false },

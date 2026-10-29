@@ -1,11 +1,27 @@
 import { randomUUID } from 'node:crypto'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
-import { installRuntimeGuards, SuperCodeAdmissionError } from './runtime-guards.js'
+import { CHAT_TOOLS, installRuntimeGuards, SuperCodeAdmissionError, toolAccess } from './runtime-guards.js'
 
 const CANCEL_CAUSE = { kind: 'hook', reason: 'SuperCode room stopped or reached a checkpoint.' }
 const liveJob = job => job.status === 'running' || job.status === 'stopping'
 // Native TextBlock is public output; ReasoningBlock and provider streams are not.
 const textOf = message => (message?.content || []).filter(part => part.type === 'text' && typeof part.text === 'string').map(part => part.text).join('\n')
+
+function restrictForTurn(agent, room, memberId, mode) {
+  const tools = agent?.ctx?.tools
+  if (typeof tools?.restrict !== 'function' || typeof tools?.schemas !== 'function') return () => {}
+  try {
+    const names = tools.schemas(agent).map(item => item?.name).filter(name => typeof name === 'string' && name && name !== 'run_code')
+    const deny = names.filter(name => {
+      if (mode === 'chat') return (name === 'supercode_start_plan' && memberId !== room?.leadId) || !CHAT_TOOLS.includes(name)
+      const access = toolAccess(name)
+      return mode === 'read' ? access !== 'read' : access === 'forbidden'
+    })
+    return deny.length ? tools.restrict({ deny }) : () => {}
+  } catch {
+    return () => {}
+  }
+}
 
 /** Persistent native lead plus up to four native continuable teammates. */
 export function createNativeRuntime({ ctx, getRoom, persistMemberSession, emit = () => {}, reserveCall, admission }) {
@@ -78,7 +94,11 @@ export function createNativeRuntime({ ctx, getRoom, persistMemberSession, emit =
     if (record.grant && !record.materializing && record.agent !== agent) throw new SuperCodeAdmissionError('This SuperCode member already has a scheduled turn.')
     record.agent = agent
     record.passive = !record.materializing
-    if (record.memberId !== getRoom(record.roomId).leadId) agent.ctx.tools.presentAs('native')
+    const room = getRoom(record.roomId)
+    if (record.memberId !== room.leadId) agent.ctx.tools.presentAs('native')
+    if (record.grant && !record.releaseTurnTools) {
+      record.releaseTurnTools = restrictForTurn(agent, room, record.memberId, record.grant.mode)
+    }
   })
 
   // Native child settlement, ordinary chat prompts and other host surfaces may
@@ -297,8 +317,12 @@ export function createNativeRuntime({ ctx, getRoom, persistMemberSession, emit =
       // Native settlement can have opened an empty root turn even after its
       // inbox notice was removed. Finish that denied wake before scheduling
       // the real envelope, so it cannot strand or borrow this assignment.
-      await (member.id === room.leadId ? root : record.agent)?.whenIdle()
+      const target = member.id === room.leadId ? root : record.agent
+      await target?.whenIdle()
       guards.assert(record, 'step')
+      if (target && !record.releaseTurnTools) {
+        record.releaseTurnTools = restrictForTurn(target, room, member.id, grant.mode)
+      }
       agent = await deliver(room, member, record, root, hostPrompt(room, member, prompt, grant), controller.signal)
       if (controller.signal.aborted) agent.cancel(CANCEL_CAUSE, { keepInbox: true })
       await agent.whenIdle()
@@ -314,6 +338,8 @@ export function createNativeRuntime({ ctx, getRoom, persistMemberSession, emit =
         // A failed drain is not quiescence. Retain the closed writer grant.
         failure = error
       }
+      record.releaseTurnTools?.()
+      delete record.releaseTurnTools
       offEvent(); offError()
       signal?.removeEventListener('abort', onAbort)
       delete record.controller

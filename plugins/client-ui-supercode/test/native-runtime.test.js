@@ -483,3 +483,34 @@ test('root host assignment preserves scoped human authority without accepting or
   assert.equal(f.requests.length, 1)
   await f.runtime.dispose()
 })
+
+test('scheduled turns scope visible tool schemas to chat, read, and write permissions and release on completion', async () => {
+  const f = fixture()
+  const activeRestrictions = []
+  const released = []
+  f.ctx.tools.schemas = () => [
+    { name: 'supercode_room_read' }, { name: 'supercode_post' }, { name: 'supercode_start_plan' },
+    { name: 'read' }, { name: 'glob' }, { name: 'skill' }, { name: 'write' }, { name: 'bash' },
+    { name: 'mcp__claude_code__Bash' }, { name: 'terminal' },
+  ]
+  f.ctx.tools.restrict = filter => {
+    activeRestrictions.push(filter.deny)
+    return () => { released.push(filter.deny) }
+  }
+  await f.runtime.run('room', 'lead', 'Hello', { mode: 'chat' })
+  assert.deepEqual(activeRestrictions[0], ['read', 'glob', 'skill', 'write', 'bash', 'mcp__claude_code__Bash', 'terminal'])
+  assert.equal(released.length, 1)
+
+  await f.runtime.run('room', 'reviewer', 'Hello from specialist', { mode: 'chat' })
+  assert.deepEqual(activeRestrictions[1], ['supercode_start_plan', 'read', 'glob', 'skill', 'write', 'bash', 'mcp__claude_code__Bash', 'terminal'])
+  assert.equal(released.length, 2)
+
+  await f.runtime.run('room', 'lead', 'Inspect files', { mode: 'read' })
+  assert.deepEqual(activeRestrictions[2], ['write', 'bash', 'mcp__claude_code__Bash', 'terminal'])
+  assert.equal(released.length, 3)
+
+  await f.runtime.run('room', 'lead', 'Implement task', { mode: 'write' })
+  assert.deepEqual(activeRestrictions[3], ['mcp__claude_code__Bash', 'terminal'])
+  assert.equal(released.length, 4)
+  await f.runtime.dispose()
+})

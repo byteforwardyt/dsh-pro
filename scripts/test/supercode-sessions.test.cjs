@@ -164,3 +164,65 @@ test('an idle chat explicitly replans with its saved models without moving chats
   assert.deepEqual(f.navigations, []);
   surface.unmount(); f.close();
 });
+
+test('natural @mentions in submit route messages to @team, @lead, or specific teammates and update recipient draft', async () => {
+  const room = {
+    id: 'room',
+    chatSessionId: 'chat',
+    revision: 1,
+    status: 'awaiting-approval',
+    members: [
+      { id: 'lead', name: 'Lead' },
+      { id: 'builder', name: 'Builder' },
+      { id: 'reviewer', name: 'Security Reviewer' },
+    ],
+  };
+  const f = fixture({ rooms: [room] }); await f.integration.refresh();
+  f.setResponse(async (route, body) => ({ ...room, revision: room.revision + 1, lastMessage: body }));
+
+  await f.integration.submit('chat', '@Security Reviewer: please inspect auth.js');
+  await f.integration.submit('chat', '@team hold off on database migrations');
+  await f.integration.submit('chat', 'Follow up on that point');
+
+  const sent = f.calls.filter(call => call.body?.action === 'message').map(call => call.body);
+  assert.equal(sent.length, 3);
+  assert.equal(sent[0].recipient, 'reviewer');
+  assert.equal(sent[0].text, 'please inspect auth.js');
+  assert.equal(sent[1].recipient, 'team');
+  assert.equal(sent[1].text, 'hold off on database migrations');
+  assert.equal(sent[2].recipient, 'team');
+  assert.equal(sent[2].text, 'Follow up on that point');
+  f.close();
+});
+
+test('live EventSource stream updates room revisions and publishes SuperCode session statuses for notifications', async () => {
+  const streams = [];
+  class FakeEventSource {
+    constructor(url) { this.url = url; this.closed = false; streams.push(this); }
+    close() { this.closed = true; }
+  }
+  const room = { id: 'room', chatSessionId: 'chat', revision: 1, status: 'planning', updatedAt: 100 };
+  const f = fixture({ rooms: [room] }, { EventSource: FakeEventSource });
+  await f.integration.refresh();
+  assert.equal(streams.length, 1);
+  assert.equal(streams[0].url, '/dsh-supercode/rooms/room/events');
+  assert.deepEqual(plain(f.integration.sessionBridge.getSnapshot().chat), {
+    roomId: 'room',
+    status: 'planning',
+    running: true,
+    updatedAt: 100,
+  });
+
+  streams[0].onmessage({ data: JSON.stringify({ room: { ...room, revision: 2, status: 'awaiting-approval', updatedAt: 250 } }) });
+  assert.equal(f.integration.roomFor('chat').status, 'awaiting-approval');
+  assert.deepEqual(plain(f.integration.sessionBridge.getSnapshot().chat), {
+    roomId: 'room',
+    status: 'awaiting-approval',
+    running: false,
+    pendingInteraction: 'plan-review',
+    updatedAt: 250,
+  });
+
+  f.close();
+  assert.equal(streams[0].closed, true);
+});

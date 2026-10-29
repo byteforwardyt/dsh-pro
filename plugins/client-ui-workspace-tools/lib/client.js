@@ -14,26 +14,88 @@ window.__ModuleLoader__.load({
 .dshd-tools-trigger.is-compact{width:42px;padding:0}
 .dshd-tools-trigger:hover{background:var(--dsw-alias-interactive-bg-hover,#ffffff14)}
 .dshd-tools-trigger:focus-visible,.dshd-tools button:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#679efe);outline-offset:2px}
-.dshd-tools{box-sizing:border-box;position:fixed;inset:0;margin:auto;width:min(1440px,calc(100vw - 48px));height:calc(100dvh - 72px);max-width:none;max-height:none;padding:0;border:1px solid var(--dsw-alias-border-l2,#ffffff20);border-radius:16px;background:var(--dsw-alias-bg-base,#151517);color:var(--dsw-alias-label-primary,#f9fafb);box-shadow:0 24px 100px #0005;overflow:hidden;-webkit-app-region:no-drag}
-.dshd-tools::backdrop{background:#09091180;backdrop-filter:blur(5px)}
+.dshd-tools{box-sizing:border-box;position:fixed;top:0;right:0;bottom:0;left:var(--dshd-tools-left,280px);margin:0;width:calc(100vw - var(--dshd-tools-left,280px));height:100dvh;max-width:none;max-height:none;padding:0;border:0;border-left:.5px solid var(--dsw-alias-border-l3,#ffffff14);border-radius:0;background:var(--dsw-alias-bg-base,#191919);color:var(--dsw-alias-label-primary,#ededed);box-shadow:none;overflow:hidden;z-index:14;-webkit-app-region:no-drag}
+.dshd-tools::backdrop{background:transparent;pointer-events:none}
 .dshd-tools-layout{height:100%;display:flex;flex-direction:column;min-height:0}
-.dshd-tools-head{display:flex;align-items:center;gap:20px;flex:0 0 auto;min-height:62px;padding:10px 16px;border-bottom:1px solid var(--dsw-alias-border-l2,#ffffff20)}
-.dshd-tools-head h2{font:500 14px/20px sans-serif;margin:0;white-space:nowrap}
-.dshd-tools-tabs{display:flex;gap:4px;padding:3px;border-radius:10px;background:var(--dsw-alias-bg-module-platform,#2c2d2f)}
-.dshd-tools-tabs button,.dshd-tools-close{border:0;border-radius:8px;color:inherit;background:transparent;cursor:pointer;font:500 13px/20px sans-serif;min-height:36px;padding:6px 14px}
-.dshd-tools-tabs button[aria-selected=true]{background:var(--dsw-alias-bg-base,#151517);box-shadow:0 1px 4px #0002}
-.dshd-tools-close{margin-left:auto;min-width:36px;padding:6px 10px}
-.dshd-tools-close:hover{background:var(--dsw-alias-interactive-bg-hover,#ffffff14)}
+.dshd-tools-head{display:flex;align-items:center;gap:12px;flex:0 0 auto;min-height:44px;padding:0 16px;border-bottom:.5px solid var(--dsw-alias-border-l2,#ffffff20);background:var(--dsw-alias-bg-base,#191919);-webkit-app-region:drag}
+.dshd-tools-head *{-webkit-app-region:no-drag}
+.dshd-tools-head h2{font:600 13px/20px sans-serif;margin:0;white-space:nowrap;color:var(--dsw-alias-label-secondary)}
+.dshd-tools-tabs{display:flex;gap:4px;padding:3px;border-radius:8px;background:var(--dsw-alias-bg-layer-1,#1e1e1e);border:1px solid var(--dsw-alias-border-l2)}
+.dshd-tools-tabs button,.dshd-tools-close{border:0;border-radius:6px;color:inherit;background:transparent;cursor:pointer;font:500 12.5px/18px sans-serif;min-height:26px;padding:4px 12px}
+.dshd-tools-tabs button[aria-selected=true]{background:var(--dsw-alias-bg-layer-2,#252628);box-shadow:0 1px 2px #0002}
+.dshd-tools-close{margin-left:auto;display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;color:var(--dsw-alias-label-secondary)}
+.dshd-tools-close:hover{background:var(--dsw-alias-interactive-bg-hover,#ffffff14);color:var(--dsw-alias-label-primary)}
 .dshd-tools-panel{flex:1;min-width:0;min-height:0;overflow:hidden}
 .dshd-tools [hidden]{display:none!important}
-@media(max-width:700px){.dshd-tools{width:100vw;height:100dvh;border:0;border-radius:0}.dshd-tools-head{gap:10px;padding:10px}.dshd-tools-head h2{font-size:12px}.dshd-tools-tabs button{padding-inline:10px}}
+@media(max-width:760px){.dshd-tools{left:0;width:100vw;height:100dvh;border:0;border-radius:0}.dshd-tools-head{gap:10px;padding:0 12px}.dshd-tools-head h2{font-size:12px}.dshd-tools-tabs button{padding-inline:10px}}
 .dshd-nav-mount{flex:none;margin:-26px 0 25px}.dshd-navigation{display:grid;gap:2px}.dshd-navigation button{display:flex;align-items:center;gap:12px;width:100%;height:38px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-primary);font-family:inherit;font-size:14px;font-weight:400;line-height:20px;cursor:pointer;text-align:left;-webkit-app-region:no-drag}.dshd-navigation button:hover{background:var(--dsw-specific-sidebar-nav-item-hover)}.dshd-navigation button[aria-expanded=true]{background:var(--dsw-specific-sidebar-nav-item-active)}[class~="hHd-Xa_collapsed"] .dshd-nav-mount{margin:-12px 0 20px}.dshd-navigation.is-collapsed{justify-items:center}.dshd-navigation.is-collapsed button{justify-content:center;width:36px;padding:0}.dshd-navigation svg{flex:none}.dshd-navigation button:focus-visible{outline:2px solid var(--dsw-alias-label-secondary);outline-offset:2px}
-.dshd-hub{inset:0;margin:0;width:100vw;height:100dvh;max-width:none;max-height:none;padding:0;border:0;border-radius:0;background:var(--dsw-alias-bg-base,#191919);color:var(--dsw-alias-label-primary,#ededed);-webkit-app-region:no-drag}.dshd-hub::backdrop{background:var(--dsw-alias-bg-base,#191919)}.dshd-hub-layout{display:grid;grid-template-columns:240px minmax(0,1fr);height:100%}.dshd-hub-nav{padding:48px 16px 24px;border-right:1px solid var(--dsw-alias-border-l1);background:var(--dsw-specific-sidebar-fill,#090909);display:flex;flex-direction:column;gap:4px}.dshd-hub-nav>small{margin:24px 12px 12px;color:var(--dsw-alias-label-tertiary);font-size:12px}.dshd-hub button,.dshd-hub input,.dshd-hub select,.dshd-hub textarea{font:inherit}.dshd-hub button{cursor:pointer}.dshd-hub button:disabled{opacity:.45;cursor:default}.dshd-hub button:focus-visible,.dshd-hub a:focus-visible,.dshd-hub input:focus-visible,.dshd-hub select:focus-visible,.dshd-hub textarea:focus-visible{outline:2px solid var(--dsw-alias-label-secondary);outline-offset:3px}.dshd-hub-nav button{display:flex;align-items:center;gap:10px;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:inherit;font-size:14px;text-align:left}.dshd-hub-nav button:hover,.dshd-hub-nav button[aria-current=page]{background:var(--dsw-specific-sidebar-nav-item-hover,#202020)}.dshd-hub-main{overflow:auto;min-width:0;padding:56px max(28px,calc((100% - 800px)/2)) 40px}.dshd-hub-main h1{font-size:24px;font-weight:500;letter-spacing:-.7px;margin:0 0 8px}.dshd-hub-intro{margin:0 0 32px;color:var(--dsw-alias-label-secondary);font-size:14px;line-height:1.7}.dshd-hub-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:24px 0}.dshd-hub label{display:grid;gap:8px;font-size:12px;color:var(--dsw-alias-label-secondary)}.dshd-hub-controls label:first-child{flex:1;min-width:170px}.dshd-hub select,.dshd-hub input,.dshd-hub textarea{min-height:38px;max-width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1,#1e1e1e);color:var(--dsw-alias-label-primary)}.dshd-hub textarea{resize:vertical;min-height:96px;width:100%;line-height:1.5}.dshd-hub-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:8px 14px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1);color:inherit;font-size:13px}.dshd-hub-button.primary{background:var(--dsw-alias-button-primary-fill);color:var(--dsw-alias-label-primary-foreground);border-color:transparent}.dshd-hub-button:hover{filter:brightness(1.12)}.dshd-hub-empty{display:grid;justify-items:center;gap:12px;padding:52px 24px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;text-align:center}.dshd-hub-empty>svg{color:var(--dsw-alias-label-tertiary);width:28px;height:28px}.dshd-hub-empty strong{font-size:15px;font-weight:500}.dshd-hub-empty p{max-width:430px;margin:0;color:var(--dsw-alias-label-secondary);font-size:13px;line-height:1.6}.dshd-hub-list{list-style:none;padding:0;margin:0;border-top:1px solid var(--dsw-alias-border-l2)}.dshd-hub-list li{display:flex;gap:14px;align-items:start;padding:20px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}.dshd-hub-list li>svg{flex:none;margin-top:3px;color:var(--dsw-alias-label-secondary)}.dshd-hub-list li>div{flex:1;min-width:0}.dshd-hub-list strong,.dshd-hub-list a{font-size:14px;font-weight:500;color:inherit;line-height:1.6;overflow-wrap:anywhere;text-decoration:none}.dshd-hub-list a:hover{text-decoration:underline}.dshd-hub-meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:1.7;margin-top:5px}.dshd-hub-note{color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.7}.dshd-hub [role=alert]{color:var(--dsw-alias-state-error-primary,#e57373);font-size:13px;line-height:1.6}.dshd-hub-form{display:grid;gap:16px;padding:20px;margin-bottom:24px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px}.dshd-hub-form .dshd-hub-controls{margin:0}.dshd-hub [hidden]{display:none!important}
-.dshd-git-status{border:1px solid var(--dsw-alias-border-l2);border-radius:12px;padding:20px;margin-bottom:24px}.dshd-git-heading{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.dshd-git-heading strong{font-size:15px;font-weight:500;overflow-wrap:anywhere}.dshd-git-badge{margin-left:auto;font-size:11px;padding:4px 8px;border:1px solid currentColor;border-radius:6px}.dshd-git-badge[data-tone=good]{color:var(--dshd-good,#73c99b)}.dshd-git-badge[data-tone=warn]{color:var(--dshd-warn,#e8b16c)}.dshd-git-badge[data-tone=bad]{color:var(--dshd-bad,#ed8790)}.dshd-git-counts{display:flex;flex-wrap:wrap;gap:16px 28px;margin:20px 0 16px}.dshd-git-counts>div{display:grid;gap:6px}.dshd-git-counts dt{font-size:11px;color:var(--dsw-alias-label-tertiary)}.dshd-git-counts dd{font-size:20px;font-variant-numeric:tabular-nums;margin:0}.dshd-plugin-retry{display:grid;gap:16px;justify-items:start}
-.dshd-plugin-on{color:var(--dshd-good,#73c99b);font-size:11px;padding:2px 7px;border:1px solid currentColor;border-radius:6px;line-height:1.4}
-.dshd-hub-list .dshd-hub-note{margin-top:6px;text-align:left;max-width:none}
+.dshd-hub{box-sizing:border-box;position:fixed;top:0;right:0;bottom:0;left:var(--dshd-hub-left,280px);margin:0;width:calc(100vw - var(--dshd-hub-left,280px));height:100dvh;max-width:none;max-height:none;padding:0;border:0;border-left:.5px solid var(--dsw-alias-border-l3,#ffffff14);border-radius:0;background:var(--dsw-alias-bg-base,#191919);color:var(--dsw-alias-label-primary,#ededed);z-index:14;-webkit-app-region:no-drag}
+.dshd-hub::backdrop{background:transparent;pointer-events:none}
+.dshd-hub-layout{display:flex;flex-direction:column;height:100%;min-width:0;min-height:0}
+.dshd-hub-nav{min-height:44px;padding:0 20px;border-bottom:.5px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base,#191919);display:flex;align-items:center;gap:6px;flex:0 0 auto;-webkit-app-region:drag}
+.dshd-hub-nav *{ -webkit-app-region:no-drag}
+.dshd-hub-nav>small{margin:0 6px 0 auto;color:var(--dsw-alias-label-tertiary);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.dshd-hub button,.dshd-hub input,.dshd-hub select,.dshd-hub textarea{font:inherit}
+.dshd-hub button{cursor:pointer}
+.dshd-hub button:disabled{opacity:.45;cursor:default}
+.dshd-hub button:focus-visible,.dshd-hub a:focus-visible,.dshd-hub input:focus-visible,.dshd-hub select:focus-visible,.dshd-hub textarea:focus-visible{outline:2px solid var(--dsw-alias-label-secondary);outline-offset:3px}
+.dshd-hub-nav button{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary);font-size:12.5px;text-align:left;transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+.dshd-hub-nav button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}
+.dshd-hub-nav button[aria-current=page]{background:var(--dsw-alias-bg-layer-2,#252628);border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-primary);font-weight:500}
+.dshd-hub-main{flex:1;overflow:auto;min-width:0;padding:28px clamp(24px,4vw,48px) 48px}
+.dshd-hub-main>*{max-width:960px;margin-left:auto;margin-right:auto}
+.dshd-hub-main h1{font-size:20px;font-weight:600;line-height:28px;letter-spacing:-.02em;margin:0 0 4px}
+.dshd-hub-intro{margin:0 auto 20px;color:var(--dsw-alias-label-secondary);font-size:13px;line-height:20px}
+.dshd-hub-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:0 auto 14px;padding:16px 18px;border:1px solid var(--dsw-alias-border-l2);border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1e1e1e)}
+.dshd-hub label{display:grid;gap:6px;font-size:12px;color:var(--dsw-alias-label-secondary)}
+.dshd-hub-controls label:first-child{flex:1;min-width:170px}
+.dshd-hub select,.dshd-hub input,.dshd-hub textarea{min-height:36px;max-width:100%;box-sizing:border-box;padding:7px 12px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base,#191919);color:var(--dsw-alias-label-primary)}
+.dshd-hub textarea{resize:vertical;min-height:96px;width:100%;line-height:1.5}
+.dshd-hub-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:7px 14px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base,#191919);color:inherit;font-size:13px;transition:background-color .15s ease,border-color .15s ease}
+.dshd-hub-button.primary{background:var(--dsw-alias-button-primary-fill);color:var(--dsw-alias-label-primary-foreground);border-color:transparent;font-weight:500}
+.dshd-hub-button:hover:not(:disabled){filter:brightness(1.08);border-color:var(--dsw-alias-border-l3)}
+.dshd-hub-empty{display:grid;justify-items:center;gap:10px;padding:48px 24px;border:1px solid var(--dsw-alias-border-l2);border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1e1e1e);text-align:center;margin:14px auto 0}
+.dshd-hub-empty>svg{color:var(--dsw-alias-label-tertiary);width:28px;height:28px}
+.dshd-hub-empty strong{font-size:15px;font-weight:500}
+.dshd-hub-empty p{max-width:430px;margin:0;color:var(--dsw-alias-label-secondary);font-size:13px;line-height:1.6}
+.dshd-hub-list{list-style:none;padding:0;margin:14px auto 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;border-top:0}
+.dshd-hub-list li{position:relative;display:flex;flex-direction:column;gap:12px;align-items:flex-start;padding:18px;border:1px solid var(--dsw-alias-border-l2);border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1e1e1e);transition:border-color .15s ease,background-color .15s ease,transform .15s ease}
+.dshd-hub-list li:hover{border-color:var(--dsw-alias-border-l3);transform:translateY(-1px)}
+.dshd-hub-list li>svg{flex:none;width:18px;height:18px;padding:8px;border-radius:10px;background:var(--dsw-alias-bg-base,#191919);border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-primary)}
+.dshd-hub-list li>div{flex:1;min-width:0;width:100%}
+.dshd-hub-list strong,.dshd-hub-list a{font-size:14px;font-weight:500;color:inherit;line-height:1.4;overflow-wrap:anywhere;text-decoration:none;display:block}
+.dshd-hub-list a:hover{text-decoration:underline}
+.dshd-hub-meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:1.6;margin-top:8px}
+.dshd-hub-list[aria-label="Installed capabilities"] .dshd-hub-meta{margin-top:0;position:absolute;top:18px;right:18px}
+.dshd-hub-note{color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.6;margin:0}
+.dshd-hub-main>.dshd-hub-note{padding:10px 14px;margin:0 auto 10px;border:1px solid var(--dsw-alias-border-l1);border-radius:12px;background:var(--dsw-alias-bg-layer-1,#1e1e1e)}
+.dshd-hub [role=alert]{color:var(--dsw-alias-state-error-primary,#e57373);font-size:13px;line-height:1.6;padding:12px 16px;margin:0 auto 12px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-error-primary,#e57373) 30%,transparent);border-radius:12px;background:var(--dsw-alias-bg-layer-1)}
+.dshd-hub-form{display:grid;gap:16px;padding:20px;margin:14px auto;border:1px solid var(--dsw-alias-border-l2);border-radius:14px;background:var(--dsw-alias-bg-layer-1)}
+.dshd-hub-form .dshd-hub-controls{margin:0;padding:0;border:0;background:transparent}
+.dshd-hub [hidden]{display:none!important}
+.dshd-git-status{border:1px solid var(--dsw-alias-border-l2);border-radius:14px;padding:20px;margin:0 auto 14px;background:var(--dsw-alias-bg-layer-1)}
+.dshd-git-heading{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dshd-git-heading strong{font-size:15px;font-weight:500;overflow-wrap:anywhere}
+.dshd-git-badge{margin-left:auto;font-size:11px;font-weight:500;padding:3px 9px;border:1px solid currentColor;border-radius:999px}
+.dshd-git-badge[data-tone=good]{color:var(--dshd-good,#73c99b);background:color-mix(in srgb,var(--dshd-good,#73c99b) 10%,transparent)}
+.dshd-git-badge[data-tone=warn]{color:var(--dshd-warn,#e8b16c);background:color-mix(in srgb,var(--dshd-warn,#e8b16c) 10%,transparent)}
+.dshd-git-badge[data-tone=bad]{color:var(--dshd-bad,#ed8790);background:color-mix(in srgb,var(--dshd-bad,#ed8790) 10%,transparent)}
+.dshd-git-counts{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:16px 0}
+.dshd-git-counts>div{display:grid;gap:4px;padding:12px 14px;border:1px solid var(--dsw-alias-border-l1);border-radius:10px;background:var(--dsw-alias-bg-base)}
+.dshd-git-counts dt{font-size:11px;color:var(--dsw-alias-label-tertiary)}
+.dshd-git-counts dd{font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;margin:0}
+.dshd-git-copy{display:inline-flex;align-items:center;height:24px;padding:0 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:500;cursor:pointer}
+.dshd-git-copy:hover{color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l3)}
+.dshd-hub-presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dshd-hub-presets>span{font-size:11px;font-weight:600;color:var(--dsw-alias-label-tertiary);text-transform:uppercase;letter-spacing:.04em;margin-right:2px}
+.dshd-hub-preset{height:26px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:999px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-secondary);font-size:11.5px;font-weight:500;cursor:pointer;transition:border-color .15s ease,color .15s ease,background-color .15s ease}
+.dshd-hub-preset:hover,.dshd-hub-preset[data-active=true]{border-color:var(--dsw-alias-border-l3);color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-2,#252628)}
+.dshd-plugin-retry{display:grid;gap:16px;justify-items:start}
+.dshd-plugin-on{color:var(--dshd-good,#73c99b);background:color-mix(in srgb,var(--dshd-good,#73c99b) 10%,transparent);font-size:11px;font-weight:500;padding:2px 9px;border:1px solid color-mix(in srgb,var(--dshd-good,#73c99b) 35%,transparent);border-radius:999px;line-height:1.4}
+.dshd-hub-list .dshd-hub-note{margin-top:4px;text-align:left;max-width:none;padding:0;border:0;background:transparent}
+body[data-dshd-hub-open="true"] [class~="hHd-Xa_panelRow"][class~="hHd-Xa_panelActive"]{background:transparent!important}
 
-@media(max-width:760px){.dshd-hub-layout{grid-template-columns:180px minmax(0,1fr)}.dshd-hub-nav{padding:38px 10px 20px}.dshd-hub-main{padding:40px 22px}}@media(max-width:560px){.dshd-hub-layout{display:flex;flex-direction:column}.dshd-hub-nav{flex-direction:row;flex-wrap:wrap;padding:12px;border-bottom:1px solid var(--dsw-alias-border-l2);gap:2px}.dshd-hub-nav>small{display:none}.dshd-hub-nav button{padding:8px;font-size:12px}.dshd-hub-main{padding:28px 18px;flex:1}.dshd-hub-list li{gap:8px}.dshd-hub-controls{gap:8px}.dshd-hub-controls select{width:100%}}
+@media(max-width:760px){.dshd-hub{left:0;width:100vw}.dshd-hub-main{padding:24px 18px}}@media(max-width:560px){.dshd-hub-nav{flex-wrap:wrap;padding:8px 12px;gap:4px}.dshd-hub-nav>small{display:none}.dshd-hub-nav button{padding:6px 8px;font-size:12px}.dshd-hub-main{padding:20px 14px;flex:1}.dshd-hub-list li{gap:10px}.dshd-hub-controls{gap:8px}.dshd-hub-controls select{width:100%}}
 `;
     function ensureStyle() {
       if (document.getElementById(STYLE_ID)) return;
@@ -106,7 +168,10 @@ window.__ModuleLoader__.load({
     function Plugins({ error, onConfigure, slots }) {
       const items = CAPABILITIES.concat(extraPluginTabs(slots));
       return h(React.Fragment, null,
-        h("div", { className: "dshd-hub-controls" },
+        h("div", { className: "dshd-hub-controls", style: { alignItems: "center", justifyContent: "space-between" } },
+          h("div", { style: { display: "grid", gap: "2px" } },
+            h("strong", { style: { fontSize: "13px", fontWeight: 500 } }, items.length + " active modules"),
+            h("span", { className: "dshd-hub-note" }, "All built-in desktop & workspace capabilities are enabled.")),
           h("button", { type: "button", className: "dshd-hub-button primary", onClick: onConfigure }, "Open plugin settings")),
         error ? h("p", { role: "alert" }, error) : null,
         h("ul", { className: "dshd-hub-list", "aria-label": "Installed capabilities" },
@@ -118,9 +183,13 @@ window.__ModuleLoader__.load({
     }
     let lastPullRequestRoot = "";
     function GitStatus({ git, repository, remoteName }) {
+      const [copied, setCopied] = useState(false);
       const label = git.detached ? "Detached HEAD" : git.branch;
       return h("section", { className: "dshd-git-status", "aria-label": "Local Git status" },
         h("div", { className: "dshd-git-heading" }, h(Icon, { name: "prs" }), h("strong", null, label),
+          !git.detached && git.branch ? h("button", { type: "button", className: "dshd-git-copy", onClick: () => {
+            navigator.clipboard?.writeText?.(git.branch)?.then?.(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }, () => {});
+          } }, copied ? "Copied" : "Copy branch") : null,
           h("span", { className: "dshd-git-badge", "data-tone": git.conflicts ? "bad" : git.changed ? "warn" : "good" },
             git.conflicts ? git.conflicts + " conflicts" : git.changed ? git.changed + " changed" : "Working tree clean")),
         h("div", { className: "dshd-hub-meta" }, repository ? h("span", null, repository + " · " + remoteName) : null,
@@ -159,7 +228,8 @@ window.__ModuleLoader__.load({
             : result.data?.items.length ? h(React.Fragment, null,
               h("ul", { className: "dshd-hub-list" }, result.data.items.map(item => h("li", { key: item.number }, h(Icon, { name: "prs" }),
                 h("div", null, h("a", { href: item.url, target: "_blank", rel: "noopener noreferrer" }, item.title),
-                  h("div", { className: "dshd-hub-meta" }, h("span", null, "#" + item.number), h("span", null, item.author), item.isDraft ? h("span", null, "Draft") : null,
+                  h("div", { className: "dshd-hub-meta" }, h("span", null, "#" + item.number), h("span", null, item.author),
+                    h("span", { className: "dshd-git-badge", "data-tone": item.isDraft ? "warn" : state === "open" ? "good" : undefined, style: { marginLeft: 0 } }, item.isDraft ? "Draft" : state[0].toUpperCase() + state.slice(1)),
                     h("span", null, item.head + " → " + item.base)))))),
               result.data.items.length >= result.data.limit ? h("p", { className: "dshd-hub-note" }, "Showing the 50 most recent results.") : null)
               : !roots.error && !result.error ? h(Empty, { icon: "prs", title: root ? "No " + state + " pull requests" : "Choose your project" }, root ? "Pull requests for this workspace will appear here." : "Add a Git project to Workspaces to check its status and pull requests.") : null);
@@ -204,6 +274,10 @@ window.__ModuleLoader__.load({
         notice ? h("p", { role: "status", className: "dshd-hub-note" }, notice) : null,
         creating ? h("form", { className: "dshd-hub-form", onSubmit: e => { e.preventDefault(); void change("create"); } },
           h("label", null, "What should DSH do?", h("textarea", { value: prompt, autoFocus: true, required: true, maxLength: 8000, disabled: busy, placeholder: "Check the test results and summarize anything that needs attention…", onChange: e => setPrompt(e.target.value) })),
+          h("div", { className: "dshd-hub-presets" },
+            h("span", null, "Presets"),
+            [["Every 15m", "every", "15"], ["Every 1h", "every", "60"], ["Every 6h", "every", "360"], ["Every 24h", "every", "1440"], ["Once in 30m", "after", "30"]].map(([label, pKind, pMin]) =>
+              h("button", { key: label, type: "button", className: "dshd-hub-preset", "data-active": kind === pKind && String(minutes) === pMin ? "true" : undefined, disabled: busy, onClick: () => { setKind(pKind); setMinutes(pMin); } }, label))),
           h("div", { className: "dshd-hub-controls" }, h("label", null, "When", h("select", { value: kind, disabled: busy, onChange: e => setKind(e.target.value) }, h("option", { value: "every" }, "Repeat every"), h("option", { value: "after" }, "Run once after"))),
             h("label", null, "Minutes", h("input", { type: "number", value: minutes, required: true, min: kind === "every" ? 5 : 1, max: 525600, step: 1, disabled: busy, onChange: e => setMinutes(e.target.value) })),
             h("button", { type: "button", className: "dshd-hub-button", disabled: busy, onClick: () => setCreating(false) }, "Cancel"),
@@ -211,9 +285,9 @@ window.__ModuleLoader__.load({
         result.loading && session ? h("p", { role: "status", className: "dshd-hub-note" }, "Loading schedules…")
           : result.data?.items.length ? h("ul", { className: "dshd-hub-list" }, result.data.items.map(item => h("li", { key: item.id }, h(Icon, { name: "scheduled" }),
             h("div", null, h("strong", null, item.prompt), h("div", { className: "dshd-hub-meta" },
+              h("span", { className: "dshd-git-badge", "data-tone": item.state === "overdue" ? "warn" : result.data.live ? "good" : undefined, style: { marginLeft: 0 } }, item.state === "overdue" ? "Overdue" : result.data.live ? "Active" : "Paused"),
               h("span", null, item.kind === "every" ? "Every " + item.everySeconds / 60 + " min" : "One time"),
-              h("span", null, (result.data.live ? "Next: " : "Inactive · due: ") + new Date(item.scheduledAt).toLocaleString()),
-              item.state === "overdue" ? h("span", null, "Overdue") : null)),
+              h("span", null, (result.data.live ? "Next: " : "Inactive · due: ") + new Date(item.scheduledAt).toLocaleString()))),
             pendingDelete === item.id ? h("div", null,
               h("button", { type: "button", className: "dshd-hub-button", disabled: busy, onClick: () => change("delete", item.id) }, "Remove schedule"),
               h("button", { type: "button", className: "dshd-hub-button", disabled: busy, onClick: () => setPendingDelete(null) }, "Keep"))
@@ -304,10 +378,46 @@ window.__ModuleLoader__.load({
         const dialog = useRef(null);
         useEffect(() => {
           const element = dialog.current;
-          if (current.hub && !element.open) element.showModal();
+          if (current.hub && !element.open) {
+            if (typeof element.show === "function") element.show();
+            else element.showModal();
+          }
           if (!current.hub && element.open) element.close();
+          if (!current.hub) {
+            document.body?.removeAttribute?.("data-dshd-hub-open");
+            return;
+          }
+          document.body?.setAttribute?.("data-dshd-hub-open", "true");
+          const sidebar = document.querySelector?.('[class*="sidebarCol"]');
+          const syncLeft = () => {
+            if (typeof sidebar?.getBoundingClientRect !== "function") return;
+            const left = Math.max(0, Math.round(sidebar.getBoundingClientRect().right));
+            element?.style?.setProperty?.("--dshd-hub-left", left + "px");
+          };
+          syncLeft();
+          const ro = typeof ResizeObserver === "function" && sidebar ? new ResizeObserver(syncLeft) : null;
+          if (ro && typeof sidebar === "object") ro.observe(sidebar);
+          const onDocClick = (e) => {
+            const t = e.target;
+            if (!t || typeof t.closest !== "function") return;
+            if (t.closest(".dshd-navigation") || t.closest('[class*="hHd-Xa_toggle"]') || t.closest('[class*="IW6AQa_controls"]') || t.closest(".dshd-yt")) return;
+            if (t.closest('[class*="sidebarCol"] button, [class*="sidebarCol"] a, [class*="sidebarCol"] [role="button"], [class*="sidebarCol"] [role="treeitem"]')) {
+              navigate(null);
+            }
+          };
+          const onKeyDown = (e) => {
+            if (e.key === "Escape" && snapshot().hub) navigate(null);
+          };
+          document.addEventListener?.("click", onDocClick, true);
+          document.addEventListener?.("keydown", onKeyDown);
+          return () => {
+            document.body?.removeAttribute?.("data-dshd-hub-open");
+            ro?.disconnect?.();
+            document.removeEventListener?.("click", onDocClick, true);
+            document.removeEventListener?.("keydown", onKeyDown);
+          };
         }, [current.hub]);
-        useEffect(() => () => { if (dialog.current?.open) dialog.current.close(); }, []);
+        useEffect(() => () => { if (dialog.current?.open) dialog.current.close(); document.body?.removeAttribute?.("data-dshd-hub-open"); }, []);
         return h("dialog", { ref: dialog, className: "dshd-hub", "aria-labelledby": "dshd-hub-title",
           onCancel: e => { e.preventDefault(); navigate(null); }, onClose: () => { if (snapshot().hub) navigate(null); } },
           current.hub ? h("div", { className: "dshd-hub-layout" },
@@ -356,6 +466,17 @@ window.__ModuleLoader__.load({
             (current.tab === "files" ? filesTab : previewTab).current?.focus();
           }
           if (!current.open && element.open) element.close();
+          if (!current.open) return;
+          const sidebar = typeof document !== "undefined" ? document.querySelector?.('[class*="sidebarCol"]') : null;
+          const syncLeft = () => {
+            if (typeof sidebar?.getBoundingClientRect !== "function") return;
+            const left = Math.max(0, Math.round(sidebar.getBoundingClientRect().right));
+            element?.style?.setProperty?.("--dshd-tools-left", left + "px");
+          };
+          syncLeft();
+          const ro = typeof ResizeObserver === "function" && sidebar ? new ResizeObserver(syncLeft) : null;
+          if (ro && typeof sidebar === "object") ro.observe(sidebar);
+          return () => ro?.disconnect?.();
         }, [current.open, current.tab]);
         useEffect(() => () => { if (dialog.current?.open) dialog.current.close(); }, []);
         function keyDown(event) {

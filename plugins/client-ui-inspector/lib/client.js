@@ -63,7 +63,7 @@ body:is([data-dshd-view=trajectory],[data-dshd-view=preview],[data-dshd-view=fil
 /* Tone rides the value alone, and only for a reading that needs attention. */
 .dshd-inspector .dshd-session-stats [data-tone]{color:var(--dsw-alias-label-tertiary);background:none}.dshd-inspector .dshd-session-stats [data-tone] b{color:var(--dsw-alias-label-primary)}
 .dshd-inspector .dshd-session-stats [data-tone=warn] b{color:var(--dshd-warn)}.dshd-inspector .dshd-session-stats [data-tone=bad] b{color:var(--dshd-bad)}
-.dshd-inspector-toggle{box-sizing:border-box;min-height:34px;padding:7px 12px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:var(--dsw-alias-label-secondary);font-family:inherit;font-size:13px;font-weight:400;line-height:18px;white-space:nowrap;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1);-webkit-app-region:no-drag;transition:background-color .15s ease,border-color .15s ease,color .15s ease}
+.dshd-inspector-toggle{box-sizing:border-box;width:28px;min-width:28px;height:28px;min-height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;gap:0;cursor:pointer;color:var(--dsw-alias-label-secondary);font-family:inherit;font-size:12px;font-weight:400;line-height:16px;white-space:nowrap;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-layer-1);-webkit-app-region:no-drag;transition:background-color .15s ease,border-color .15s ease,color .15s ease}.dshd-inspector-toggle span{display:none}
 .dshd-inspector-toggle:hover{background:var(--dsw-alias-interactive-bg-hover);border-color:var(--dsw-alias-border-l3);color:var(--dsw-alias-label-primary)}.dshd-inspector-toggle[aria-expanded=true]{background:var(--dsw-alias-bg-layer-2);border-color:var(--dsw-alias-border-l3);color:var(--dsw-alias-label-primary)}
 .dshd-inspector-review{width:min(860px,calc(100vw - 40px));max-height:85dvh;box-sizing:border-box;padding:24px;border:1px solid var(--dsw-alias-border-l3);border-radius:16px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);-webkit-app-region:no-drag}.dshd-inspector-review[aria-label="Computer controls"][open],.dshd-setup-dialog[open]{display:flex;flex-direction:column;gap:16px;width:min(720px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:hidden}.dshd-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0}.dshd-inspector-review .dshd-dialog-header h2{margin:0}.dshd-dialog-body{min-height:0;overflow:auto;scrollbar-gutter:stable;padding-right:4px}.dshd-inspector-review::backdrop{background:#0008}.dshd-inspector-review h2{font-size:20px;font-weight:500;margin:0 0 18px}.dshd-inspector-review pre{font-size:12px;line-height:1.6;max-height:42dvh;overflow:auto;padding:16px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px}.dshd-inspector-review textarea{width:100%;box-sizing:border-box;padding:12px;margin-bottom:12px;font:inherit;color:inherit;background:transparent;border:1px solid var(--dsw-alias-border-l3);border-radius:8px}.dshd-inspector-review footer{display:flex;gap:8px;justify-content:end}.dshd-inspector-review button{padding:9px 16px;border:1px solid var(--dsw-alias-border-l3);border-radius:8px;background:var(--dsw-alias-bg-layer-2);color:inherit;cursor:pointer}.dshd-inspector-review p{font-size:13px;line-height:1.6;overflow-wrap:anywhere}.dshd-inspector-review[aria-label="Workspace files"]{height:85dvh;padding:12px;display:flex;flex-direction:column}.dshd-inspector-review:not([open]){display:none}.dshd-inspector-review .file-body{min-height:0;flex:1;margin-top:12px}
 .dshd-inspector :focus-visible,.dshd-inspector-toggle:focus-visible,.dshd-inspector-review :focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#679efe);outline-offset:2px}
@@ -72,7 +72,7 @@ body:is([data-dshd-view=trajectory],[data-dshd-view=preview],[data-dshd-view=fil
 .dshd-inspector-close{display:none}
 [data-dsh-inspector-layout=overlay] .dshd-inspector-close{display:flex;align-items:center;justify-content:space-between;gap:8px;box-sizing:border-box;width:calc(100% + 16px);margin-inline:-8px;padding:14px 8px 0;border:0;border-radius:8px;background:transparent;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--dsw-alias-label-tertiary);transition:color .12s ease}
 [data-dsh-inspector-layout=overlay] .dshd-inspector-close:hover{color:var(--dsw-alias-label-primary)}
-@container dsh-chat (max-width:1050px){.dshd-inspector-toggle{width:34px;height:34px;justify-content:center;padding:7px}.dshd-inspector-toggle span{display:none}}
+@container dsh-chat (max-width:1050px){.dshd-inspector-toggle{width:28px;height:28px;justify-content:center;padding:0}.dshd-inspector-toggle span{display:none}}
 @media(max-height:720px){.dshd-inspector section{padding:12px 0}.dshd-inspector .note{line-height:1.5;margin-top:6px}.dshd-inspector .dshd-session-stats{row-gap:6px}.dshd-inspector .recovery{padding:8px;gap:6px}}
 @media(prefers-reduced-motion:reduce){.dshd-inspector .row,.dshd-inspector .go,.dshd-inspector .icon-button,.dshd-inspector .small-button,.dshd-inspector .actions button,.dshd-inspector-toggle,.dshd-inspector-review button{transition:none}}
 .dshd-inspector-review .diff-line{display:block;white-space:pre}.dshd-inspector-review .diff-add{color:var(--dshd-good);background:color-mix(in srgb,var(--dshd-good) 8%,transparent)}.dshd-inspector-review .diff-remove{color:var(--dshd-bad);background:color-mix(in srgb,var(--dshd-bad) 8%,transparent)}.dshd-inspector-review .diff-hunk{color:#8fa9e8}
@@ -345,6 +345,59 @@ body:is([data-dshd-view=trajectory],[data-dshd-view=preview],[data-dshd-view=fil
                     // short list faded at the bottom just looks broken. Eight
                     // 28px rows is the first count that exceeds the 220px cap.
                     { className: data.files.length > 7 ? "changes overflowing" : "changes" },
+                    data.files.length > 1
+                      ? h(
+                          "div",
+                          { className: "row", key: "__batch__" },
+                          h("span", null, `${data.staged || 0}/${data.files.length} staged`),
+                          data.files.some((f) => !f.staged && !f.conflict)
+                            ? h(
+                                "button",
+                                {
+                                  className: "small-button",
+                                  disabled: busy,
+                                  onClick: async () => {
+                                    let current = data;
+                                    for (const f of data.files.filter((item) => !item.staged && !item.conflict)) {
+                                      try {
+                                        current = await request("/dsh-files/git", {
+                                          method: "POST",
+                                          headers: { "content-type": "application/json" },
+                                          body: JSON.stringify({ root, revision: current.revision, action: "stage", path: f.path }),
+                                        });
+                                        setData(current);
+                                      } catch (e) { setError(e.message); break; }
+                                    }
+                                  },
+                                },
+                                "Stage all",
+                              )
+                            : null,
+                          data.files.some((f) => f.staged && !f.conflict)
+                            ? h(
+                                "button",
+                                {
+                                  className: "small-button",
+                                  disabled: busy,
+                                  onClick: async () => {
+                                    let current = data;
+                                    for (const f of data.files.filter((item) => item.staged && !item.conflict)) {
+                                      try {
+                                        current = await request("/dsh-files/git", {
+                                          method: "POST",
+                                          headers: { "content-type": "application/json" },
+                                          body: JSON.stringify({ root, revision: current.revision, action: "unstage", path: f.path }),
+                                        });
+                                        setData(current);
+                                      } catch (e) { setError(e.message); break; }
+                                    }
+                                  },
+                                },
+                                "Unstage all",
+                              )
+                            : null,
+                        )
+                      : null,
                     data.files.map((f) =>
                       h(
                         "div",
@@ -475,9 +528,15 @@ body:is([data-dshd-view=trajectory],[data-dshd-view=preview],[data-dshd-view=fil
                       ),
                       h("textarea", {
                         "aria-label": "Commit message",
-                        placeholder: "Describe your changes",
+                        placeholder: "Describe your changes (⌘Enter to commit)",
                         value: message,
                         onChange: (e) => setMessage(e.target.value),
+                        onKeyDown: (e) => {
+                          if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !busy && message.trim() && review.data.staged && !review.data.conflicts) {
+                            e.preventDefault();
+                            act("commit", { message, confirm: review.data.head });
+                          }
+                        },
                         disabled: busy,
                       }),
                     )

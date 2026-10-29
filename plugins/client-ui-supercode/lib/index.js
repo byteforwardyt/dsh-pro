@@ -15,12 +15,18 @@ export const inject = ['webServer', 'workspaceRegistry', 'settings', 'tools', 'a
 export function apply(ctx) {
   const home = process.env.DSH_HOME || path.join(os.homedir(), '.dsh')
   const store = new RoomStore(path.join(home, 'supercode', 'rooms'))
-  const catalog = async () => Promise.all(ctx.llm.listProviders().map(async provider => {
-    try { return { id: provider.id, name: provider.name || provider.id, label: provider.name || provider.id, models: await ctx.llm.listModels(provider.id) } }
-    catch { return { id: provider.id, name: provider.name || provider.id, models: [], error: 'Model catalog unavailable. Check this connection.' } }
-  }))
+  let cachedCatalog = null, cachedCatalogAt = 0
+  const catalog = async ({ fresh = false } = {}) => {
+    if (!fresh && cachedCatalog && Date.now() - cachedCatalogAt < 10000) return cachedCatalog
+    const next = await Promise.all(ctx.llm.listProviders().map(async provider => {
+      try { return { id: provider.id, name: provider.name || provider.id, label: provider.name || provider.id, models: await ctx.llm.listModels(provider.id) } }
+      catch { return { id: provider.id, name: provider.name || provider.id, models: [], error: 'Model catalog unavailable. Check this connection.' } }
+    }))
+    if (next.length && next.every(group => !group.error)) { cachedCatalog = next; cachedCatalogAt = Date.now() }
+    return next
+  }
   const service = new RoomService({ store, validateModels: async members => {
-    const groups = await catalog()
+    const groups = await catalog({ fresh: true })
     for (const member of members) {
       const model = groups.find(group => group.id === member.provider)?.models.find(model => model.id === member.model)
       check(model, `${member.name}’s selected model is unavailable. Update the team or restore its connection.`, 409)
@@ -63,14 +69,19 @@ export function apply(ctx) {
           const setting = ctx.settings.describe({ redactSecrets: true }).find(item => item.ns === 'desktop-model-visibility')
           selections = setting?.config?.selections || setting?.value?.selections || {}
         } catch {}
-        return json(res, 200, { rooms: store.list(), workspaces: workspaces(), catalog: await catalog(), selections, errors: store.errors, recoveryErrors: await recovery })
+        return json(res, 200, { rooms: store.list().map(room => service.view(room.id)), workspaces: workspaces(), catalog: await catalog(), selections, errors: store.errors, recoveryErrors: await recovery })
       }
       const found = route.match(/^\/rooms\/([a-zA-Z0-9_-]{1,80})(\/command|\/events)?$/)
       if (req.method === 'GET' && found && !found[2]) return json(res, 200, service.view(found[1]))
       if (req.method === 'GET' && found?.[2] === '/events') {
         service.get(found[1])
         res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive' })
-        const send = room => { if (room.id === found[1] && !res.destroyed) res.write(`id: ${room.revision}\ndata: ${JSON.stringify({ room })}\n\n`) }
+        const send = room => {
+          if (room.id === found[1] && !res.destroyed) {
+            const current = service.view(found[1])
+            res.write(`id: ${current.revision}\ndata: ${JSON.stringify({ room: current })}\n\n`)
+          }
+        }
         send(service.view(found[1])); store.on('change', send); streams.add(res)
         const heartbeat = setInterval(() => { if (!res.destroyed) res.write(': heartbeat\n\n') }, 15000); heartbeat.unref?.()
         res.once('close', () => { clearInterval(heartbeat); store.off('change', send); streams.delete(res) })

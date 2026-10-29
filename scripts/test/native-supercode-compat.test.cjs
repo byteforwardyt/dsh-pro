@@ -20,7 +20,7 @@ test('ordinary malformed messages, conflicting roles and mismatched ownership en
 })
 test('the persistence patch is pinned to the stored-event decoder and leaves new-event validation intact', () => {
   const store = path.resolve(__dirname, '../../node_modules/.pnpm')
-  const dir = fs.readdirSync(store).find(name => name.startsWith('@deepseek-ai+dsh-session-persistence@0.2.0-rc.2'))
+  const dir = fs.readdirSync(store).find(name => name.startsWith('@deepseek-ai+dsh-session-persistence@0.2.1-rc.4'))
   const source = fs.readFileSync(path.join(store, dir, 'node_modules/@deepseek-ai/dsh-session-persistence/lib/index.js'), 'utf8')
   const output = transform(source)
   assert(output.includes(MARKER)); assert(output.includes('adoptSessionEvent(normalizeLegacySuperCodeEvent(event))'))

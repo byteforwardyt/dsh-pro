@@ -73,6 +73,13 @@ export const FORBIDDEN_LOGIN_PROVIDERS = Object.freeze([
   // app is not one. (The borrowed-client-id problem is real here too, but it is
   // not the distinguishing reason — see the header.)
   'github-copilot',
+  // Duplicate ChatGPT OAuth route in pi-ai 1.4.0; openai-codex is the canonical
+  // ChatGPT subscription route used by this build.
+  'openai',
+  // Unvetted third-party subscription / internal gateway routes in pi-ai 1.4.0;
+  // kept API-key-only until vendor terms are reviewed.
+  'meta',
+  'radius',
 ])
 
 /**

@@ -11,7 +11,8 @@ async function fixture(t, storageRoot){
   const toolsPath=harness.resolve('@deepseek-ai/dsh-tools');
   const {Context}=await import(createRequire(toolsPath).resolve('@deepseek-ai/cordis'));
   const {ToolRuntime}=await import(toolsPath);
-  const {registerScheduleTools,ScheduleService}=await import(harness.resolve('@deepseek-ai/dsh-schedule'));
+  const {ScheduleService}=await import(harness.resolve('@deepseek-ai/dsh-schedule'));
+  const {apply:applyScheduleTools}=await import(harness.resolve('@deepseek-ai/dsh-tool-schedule'));
   const {Storage}=await import(harness.resolve('@deepseek-ai/dsh-storage'));
   const {JsonStorageBackend}=await import(harness.resolve('@deepseek-ai/dsh-storage-json'));
   const {DomainFacility}=await import(harness.resolve('@deepseek-ai/dsh-storage-domain'));
@@ -19,7 +20,7 @@ async function fixture(t, storageRoot){
   const ctx=new Context();ctx.systemPrompt={tools:()=>()=>{},section:()=>()=>{}};
   const tools=new ToolRuntime(ctx,{mode:'native'});
   const events=[];
-  const agent={id:'fixture-session',ctx,session:{id:'fixture-session',header:{id:'fixture-session',seedLength:0},events,
+  const agent={id:'fixture-session',ctx,options:{},session:{id:'fixture-session',header:{id:'fixture-session',seedLength:0},events,
     append(type,data){events.push({seq:events.length,type,data,time:Date.now()});}}};
   let live=true, flushes=0;
   const context={tools,agents:{get:()=>live?agent:undefined},sessions:{flush:async()=>{flushes++;return true}},logger:{warn(){}},
@@ -27,10 +28,10 @@ async function fixture(t, storageRoot){
       readTitleSnapshots:async()=>[{status:'fulfilled',value:{title:{title:'Schedule fixture'}}}]},
     sessionPersistence:{inspect:async()=>({meta:agent.session.header,events})}};
   new Storage(ctx);const backend=new JsonStorageBackend(root);ctx.storage.backend.register('json',backend);
-  ctx.storageDomain=new DomainFacility(ctx,{backend:'json'});ctx.agents={roots:()=>[]};ctx.sessions={};ctx.sessionController={};ctx.sessionPersistence={};
+  ctx.storageDomain=new DomainFacility(ctx,{backend:'json'});ctx.agents={roots:()=>[],get:()=>live?agent:undefined};ctx.sessions={};ctx.sessionController={};ctx.sessionPersistence={};
   context.schedule=new ScheduleService(ctx,{});
-  const unregister=registerScheduleTools(context,{tools},agent);
-  const close=async()=>{unregister();await ctx.fiber.dispose();await backend.close();};
+  applyScheduleTools({inject:(_deps,fn)=>fn(context)});
+  const close=async()=>{await ctx.fiber.dispose();await backend.close();};
   t.after(close);
   return {ctx,tools,agent,events,context,root,close,api:createSchedules(context),flushes:()=>flushes,setLive:value=>{live=value}};
 }
@@ -77,7 +78,7 @@ test('saved schedules can be inspected while inactive without resuming a convers
 });
 test('a storage failure is reported rather than retried into duplicate schedules',async t=>{
   const f=await fixture(t);let attempts=0;
-  const domain=await f.context.schedule.ready;const tasks=domain.table('tasks');
+  const domain=await f.context.schedule.getDomain();const tasks=domain.table('tasks');
   tasks.put=async()=>{attempts++;throw new Error('fixture storage write failed');};
   await assert.rejects(f.api.change(create,signal()),/fixture storage write failed|failed|error/i);
   assert.equal(attempts,1);assert.equal(f.events.length,0);

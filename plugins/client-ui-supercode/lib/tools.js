@@ -5,7 +5,7 @@ const str = (description, required = false) => ({ type: 'string', description, .
 const number = description => ({ type: 'integer', description })
 const strings = description => ({ type: 'array', items: { type: 'string' }, description })
 const DEFINITIONS = [
-  ['supercode_start_plan', 'Lead only: request workspace investigation and task planning for a concrete user work request, then end your turn. Never use for greetings, thanks, acknowledgements or general conversation. The host uses the exact stored user message; no implementation is allowed before plan approval.', {
+  ['supercode_start_plan', 'Lead only: request workspace investigation and task planning whenever the user asks to inspect, review, explain, audit, debug, test, or modify the workspace/project, then end your turn. Never use for greetings, thanks, acknowledgements or general conversation. The host uses the exact stored user message; no implementation is allowed before plan approval.', {
     messageId: str('ID of the current user message that requests concrete project work.', true) }],
   ['supercode_room_read', 'Read your SuperCode room, tasks and public conversation. Tool notifications are excluded by default. Use room.history.nextBefore as before to read older messages; continue until hasMore is false when earlier findings matter.', {
     before: str('Message ID from history.nextBefore; omit for the latest page.'), limit: number('Messages per page, 1–100; default 20.'),

@@ -312,6 +312,14 @@ window.__ModuleLoader__.load({
       }) : null;
       const feed = canFeed ? createSessionFeed() : null;
 
+      const supercodeStore = typeof window !== "undefined" ? (window.__DSH_SUPERCODE_SESSIONS__ ||= {
+        snapshot: {},
+        listeners: new Set(),
+        getSnapshot() { return this.snapshot; },
+        subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); },
+        publish(next) { this.snapshot = next; this.listeners.forEach(fn => fn()); },
+      }) : null;
+
       function push(count) {
         if (!canNotify) return;
         const next = pref.value && typeof count === "number" ? count : 0;
@@ -323,7 +331,17 @@ window.__ModuleLoader__.load({
       function sync() {
         const list = ctx.sessions.list.getSnapshot();
         const statuses = ctx.uiSession.sessionStatus.getSnapshot();
+        const supercode = supercodeStore?.getSnapshot?.() || null;
         const snap = list && { ...list, byId: Object.fromEntries(Object.entries(list.byId || {}).map(([id, row]) => {
+          const sc = supercode?.[id];
+          if (sc) {
+            return [id, {
+              ...row,
+              running: sc.running === true,
+              pendingInteraction: ['approval', 'plan-review', 'question'].includes(sc.pendingInteraction) ? sc.pendingInteraction : undefined,
+              updatedAt: typeof sc.updatedAt === "number" ? Math.max(row.updatedAt || 0, sc.updatedAt) : row.updatedAt,
+            }];
+          }
           const status = statuses.get(id);
           const kind = status?.pendingInteraction?.kind;
           return [id, { ...row, running: status?.running ?? row.running,
@@ -364,6 +382,7 @@ window.__ModuleLoader__.load({
       });
       const stopList = ctx.sessions.list.subscribe(sync);
       const stopStatus = ctx.uiSession.sessionStatus.subscribe(sync);
+      const stopSupercode = supercodeStore ? supercodeStore.subscribe(sync) : () => {};
 
       let stopOpen = () => {};
       if (typeof bridge.onOpenSession === "function") {
@@ -378,7 +397,7 @@ window.__ModuleLoader__.load({
         }) || (() => {});
       }
 
-      return () => { stopOpen(); stopStatus(); stopList(); stopPref(); };
+      return () => { stopOpen(); stopSupercode(); stopStatus(); stopList(); stopPref(); };
     }
 
     function apply(ctx) {
@@ -401,6 +420,7 @@ window.__ModuleLoader__.load({
     exports.createWatcher = createWatcher;
     exports.createSessionFeed = createSessionFeed;
     exports.FEED_CAP = FEED_CAP;
+    exports.getSupercodeStore = () => typeof window !== "undefined" ? window.__DSH_SUPERCODE_SESSIONS__ : null;
     return module.exports;
   },
 });

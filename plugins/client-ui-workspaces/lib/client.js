@@ -25,30 +25,44 @@ window.__ModuleLoader__.load({
     const SKELETON_ROWS = 3;
 
     const CSS = [
-      ".dshd-ws{display:flex;flex-direction:column;gap:10px;max-width:720px}",
-      ".dshd-ws h2{font:var(--dsw-font-base-strong-16,500 16px/24px sans-serif);margin:0;",
+      ".dshd-ws{display:flex;flex-direction:column;gap:12px;max-width:960px}",
+      ".dshd-ws h2{font:600 18px/26px -apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-.02em;margin:0;",
       "color:var(--dsw-alias-label-primary,#f9fafb)}",
-      ".dshd-ws-intro{font:var(--dsw-font-s-14,14px/22px sans-serif);margin:0;",
-      "color:var(--dsw-alias-label-tertiary,#adb2b8)}",
+      ".dshd-ws-intro{font:var(--dsw-font-s-14,13px/21px sans-serif);margin:0;",
+      "color:var(--dsw-alias-label-secondary,#cfd3d6)}",
+      ".dshd-ws-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;",
+      "padding:10px 14px;border-radius:12px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
+      "background:var(--dsw-alias-bg-layer-1,#19191b)}",
+      ".dshd-ws-summary{font:500 12px/18px -apple-system,BlinkMacSystemFont,sans-serif;",
+      "color:var(--dsw-alias-label-tertiary,#adb2b8);font-variant-numeric:tabular-nums}",
+      ".dshd-ws-search{min-width:210px;height:30px;padding:0 10px;border-radius:8px;",
+      "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
+      "background:var(--dsw-alias-bg-base,#151517);color:var(--dsw-alias-label-primary,#f9fafb);",
+      "font:12px/18px -apple-system,BlinkMacSystemFont,sans-serif}",
+      ".dshd-ws-search:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#679efe);outline-offset:1px}",
       // Group headings (PINNED / ALL) — same small-caps label voice as the
       // account cards' title row, just quieter (tertiary, not secondary),
       // since these are dividers rather than content.
-      ".dshd-ws-group{margin:4px 0 -2px;font:var(--dsw-font-xxs-strong-12,500 12px/18px sans-serif);",
-      "text-transform:uppercase;letter-spacing:.05em;",
+      ".dshd-ws-group{margin:4px 0 -2px;font:var(--dsw-font-xxs-strong-12,600 11px/16px sans-serif);",
+      "text-transform:uppercase;letter-spacing:.06em;",
       "color:var(--dsw-alias-label-tertiary,#adb2b8)}",
       ".dshd-ws-group:first-child{margin-top:0}",
-      ".dshd-ws-list{display:flex;flex-direction:column;gap:8px}",
-      ".dshd-ws-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;",
+      ".dshd-ws-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}",
+      ".dshd-ws-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;",
       "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
-      "background:var(--dsw-alias-bg-layer-3,#353638);",
+      "background:var(--dsw-alias-bg-layer-1,#19191b);",
       "transition:border-color var(--ds-transition-duration-fast,.1s) var(--ds-ease-in-out,ease),",
       "background-color var(--ds-transition-duration-fast,.1s) var(--ds-ease-in-out,ease)}",
       // Highlight only — the row itself isn't a control (the Pin button is),
       // so no cursor change, just enough contrast to scan the list by eye.
       ".dshd-ws-row:hover{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.16));",
-      "background:linear-gradient(var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08)),",
-      "var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08))),",
-      "var(--dsw-alias-bg-layer-3,#353638)}",
+      "background:var(--dsw-alias-bg-layer-2,#222326)}",
+      ".dshd-ws-actions{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto}",
+      ".dshd-ws-copy{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 10px;",
+      "border-radius:8px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));background:transparent;",
+      "color:var(--dsw-alias-label-tertiary,#adb2b8);font:500 11px/16px -apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer;",
+      "transition:background-color .1s ease,color .1s ease}",
+      ".dshd-ws-copy:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,#f9fafb)}",
       // Folder mark — same glyph client-ui-brand draws for the Workspaces nav
       // icon, just inline and currentColor instead of a masked background.
       ".dshd-ws-mark{flex:0 0 auto;color:var(--dsw-alias-label-tertiary,#adb2b8)}",
@@ -169,6 +183,15 @@ window.__ModuleLoader__.load({
     }
 
     function WorkspaceRow({ w, pinned, busy, onToggle }) {
+      const [copied, setCopied] = useState(false);
+      const copyPath = async () => {
+        if (!w.path) return;
+        try {
+          await navigator.clipboard.writeText(w.path);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1200);
+        } catch {}
+      };
       return h(
         "div",
         { className: "dshd-ws-row" },
@@ -183,12 +206,18 @@ window.__ModuleLoader__.load({
             // head without reordering the path's own characters.
             h("span", { key: "p", className: "dshd-ws-path", title: w.path },
               `\u200e${w.path}\u200e`))),
-        h("button", {
-          key: "p", type: "button", className: "dshd-ws-pin",
-          "aria-pressed": String(pinned), disabled: busy,
-          title: pinned ? "Unpin from top" : "Pin to top",
-          onClick: () => void onToggle(w.workspaceId),
-        }, h(PinIcon, { filled: pinned }), h("span", null, pinned ? "Pinned" : "Pin")),
+        h("div", { key: "a", className: "dshd-ws-actions" },
+          w.path ? h("button", {
+            key: "cp", type: "button", className: "dshd-ws-copy",
+            title: "Copy workspace path",
+            onClick: () => void copyPath(),
+          }, copied ? "Copied" : "Copy path") : null,
+          h("button", {
+            key: "p", type: "button", className: "dshd-ws-pin",
+            "aria-pressed": String(pinned), disabled: busy,
+            title: pinned ? "Unpin from top" : "Pin to top",
+            onClick: () => void onToggle(w.workspaceId),
+          }, h(PinIcon, { filled: pinned }), h("span", null, pinned ? "Pinned" : "Pin"))),
       );
     }
 
@@ -210,6 +239,7 @@ window.__ModuleLoader__.load({
       const [loadFailed, setLoadFailed] = useState(false);
       const [pins, setPins] = useState(readPins);
       const [busy, setBusy] = useState(false);
+      const [query, setQuery] = useState("");
 
       // `loadFailed` only drives the UI while `items` is still null (see
       // render below) — a failed *refresh* after we already have a good list
@@ -288,11 +318,19 @@ window.__ModuleLoader__.load({
       // Plain alphabetical. The pinned-first sort this replaced was a leftover
       // from the ungrouped layout — with groups doing the ordering, sorting the
       // source list as well only made the duplication below harder to see.
-      const rows = items === null
+      const allRows = items === null
         ? null
         : [...items].sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      const search = query.trim().toLowerCase();
+      const rows = allRows === null
+        ? null
+        : !search
+          ? allRows
+          : allRows.filter((w) => `${w.title || ""} ${w.path || ""}`.toLowerCase().includes(search));
       const pinnedRows = rows === null ? [] : rows.filter((w) => pins.has(w.workspaceId));
       const otherRows = rows === null ? [] : rows.filter((w) => !pins.has(w.workspaceId));
+      const totalSessions = allRows ? allRows.reduce((sum, w) => sum + ((w.sessionIds || []).length), 0) : 0;
+      const totalPinned = allRows ? allRows.filter((w) => pins.has(w.workspaceId)).length : 0;
 
       return h(
         "div",
@@ -300,6 +338,21 @@ window.__ModuleLoader__.load({
         h("h2", { key: "h" }, "Workspaces"),
         h("p", { key: "i", className: "dshd-ws-intro" },
           "Pin the projects you use most — pinned workspaces move to the top of the sidebar."),
+        allRows && allRows.length > 0
+          ? h("div", { key: "tb", className: "dshd-ws-toolbar" },
+              h("span", { className: "dshd-ws-summary" },
+                `${allRows.length} workspace${allRows.length === 1 ? "" : "s"} · ${totalSessions} session${totalSessions === 1 ? "" : "s"} · ${totalPinned} pinned`),
+              allRows.length > 1
+                ? h("input", {
+                    type: "search",
+                    className: "dshd-ws-search",
+                    "aria-label": "Search workspaces",
+                    placeholder: "Search workspaces…",
+                    value: query,
+                    onChange: (e) => setQuery(e.target.value),
+                  })
+                : null)
+          : null,
         rows === null
           ? (loadFailed
               ? h("div", { key: "err", className: "dshd-ws-error" },
@@ -311,10 +364,13 @@ window.__ModuleLoader__.load({
               : h("div", { key: "l", className: "dshd-ws-list", role: "status",
                   "aria-live": "polite", "aria-label": "Loading workspaces" },
                   Array.from({ length: SKELETON_ROWS }, (_, i) => h(SkeletonRow, { key: i }))))
-          : rows.length === 0
+          : allRows.length === 0
             ? h("p", { key: "e", className: "dshd-ws-empty" },
                 "No workspaces yet. Choose a project folder to create one.")
-            : h(
+            : rows.length === 0
+              ? h("p", { key: "nm", className: "dshd-ws-empty" },
+                  "No matching workspaces.")
+              : h(
                 React.Fragment,
                 { key: "g" },
                 // Each workspace appears in exactly ONE group. The second list

@@ -108,9 +108,9 @@ window.__ModuleLoader__.load({
       // A <webview> is a custom element; without an explicit flex display it
       // collapses to its intrinsic size before the observer above runs.
       "webview.dshd-pv-frame{display:flex;flex:1 1 auto}",
-      ".dshd-pv-empty{position:absolute;inset:0;display:flex;flex-direction:column;gap:20px;",
-      "align-items:center;justify-content:center;text-align:center;padding:40px;overflow:auto}",
-      ".dshd-pv-find{display:flex;flex-direction:column;gap:6px;align-items:center;max-width:460px}",
+      ".dshd-pv-empty{position:absolute;inset:0;display:flex;flex-direction:column;gap:14px;",
+      "align-items:center;justify-content:center;text-align:center;padding:32px;overflow:auto}",
+      ".dshd-pv-find{display:flex;flex-direction:column;gap:8px;align-items:center;width:min(100%,480px);box-sizing:border-box;padding:18px 20px;border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:14px;background:var(--dsw-alias-bg-layer-1,#1e1e1e)}",
       ".dshd-pv-refind{font:500 12px/18px sans-serif;padding:4px 12px;border-radius:14px;cursor:pointer;",
       "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));background:transparent;",
       "color:var(--dsw-alias-label-tertiary,#adb2b8);margin-top:4px}",
@@ -142,7 +142,7 @@ window.__ModuleLoader__.load({
       // Chat-width drag handles are meaningless over a full-width browser and
       // otherwise intercept clicks on the server controls and game below.
       "body[data-dshd-view=preview] [data-width-handle]{display:none}",
-      ".dshd-pv-bar{box-sizing:border-box;min-height:48px;padding:7px 12px;gap:6px;flex-wrap:wrap;background:var(--dsw-alias-bg-layer-1,#19191b)}",
+      ".dshd-pv-bar{box-sizing:border-box;min-height:44px;padding:6px 12px;gap:6px;flex-wrap:wrap;background:var(--dsw-alias-bg-layer-1,#19191b)}",
       ".dshd-pv-url,.dshd-pv-select{border-radius:8px;background:var(--dsw-alias-bg-base,#151517)}",
       ".dshd-pv-form{min-width:180px}.dshd-pv-url,.dshd-pv-select{box-sizing:border-box;height:32px;font-size:13px;line-height:18px}",
       ".dshd-pv-status{display:flex;justify-content:space-between;gap:12px;padding:7px 14px;font:11px/18px ui-sans-serif,sans-serif;color:var(--dsw-alias-label-tertiary,#adb2b8);border-bottom:1px solid var(--dsw-alias-border-l1,#ffffff12)}",

@@ -17,9 +17,9 @@ test('offers a subscription login only for the providers this build has vetted',
   )
 })
 
-test('covers every oauth-capable provider except the two that are excluded', () => {
-  // pi-ai 0.82.1 declares auth.oauth for exactly these six (verified at runtime).
-  const OAUTH_CAPABLE = ['anthropic', 'github-copilot', 'kimi-coding', 'openai-codex', 'openrouter', 'xai']
+test('covers every oauth-capable provider except the ones that are excluded', () => {
+  // pi-ai 1.4.0 declares auth.oauth for exactly these nine (verified at runtime).
+  const OAUTH_CAPABLE = ['anthropic', 'github-copilot', 'kimi-coding', 'meta', 'openai', 'openai-codex', 'openrouter', 'radius', 'xai']
   const unaccounted = OAUTH_CAPABLE.filter(
     (p) => !ALLOWED_LOGIN_PROVIDERS.includes(p) && !FORBIDDEN_LOGIN_PROVIDERS.includes(p),
   )

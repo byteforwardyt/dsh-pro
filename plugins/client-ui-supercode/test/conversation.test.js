@@ -188,3 +188,104 @@ test('model changes reject active runs, invalid connections and stale revisions'
   await assert.rejects(f.s.command(f.id, command('team', { revision: f.s.get(f.id).revision, members, leadId: 'lead' })), /unavailable/)
   assert.equal(f.s.get(f.id).nextTeam, undefined); assert.equal(f.calls.length, 0)
 })
+
+test('resuming a paused planning phase skips teammates who already completed investigation', async t => {
+  let leadTurns = 0
+  const f = await fixture(t, (s, id, actor) => {
+    if (actor === 'lead') {
+      propose(s, id)
+      if (++leadTurns === 2) s.tool(id, actor, 'supercode_plan_ready', {})
+    }
+  })
+  await f.s.command(f.id, command('plan')); await idle(f.s, f.id)
+  assert.equal(f.s.get(f.id).status, 'blocked')
+  assert.deepEqual(f.calls.map(c => c.actor), ['builder', 'reviewer', 'lead'])
+  await f.s.command(f.id, command('resume')); await idle(f.s, f.id)
+  assert.equal(f.s.get(f.id).status, 'awaiting-approval')
+  assert.deepEqual(f.calls.slice(3).map(c => c.actor), ['lead'])
+})
+
+test('pre-approval lead guidance can refine the proposed task board and review rework includes feedback', async t => {
+  let builderWrites = 0, firstReviewed = false
+  const f = await fixture(t, (s, id, actor, prompt, options) => {
+    const room = s.get(id)
+    if (room.status === 'discussing') {
+      assert.match(prompt, /use supercode_task \(propose, update, or cancel\)/)
+      s.tool(id, actor, 'supercode_task', { operation: 'propose', title: 'Second task', ownerId: 'builder', criteria: 'Second check passes.' })
+      s.tool(id, actor, 'supercode_post', { text: 'Added the second task to the board.' })
+      return
+    }
+    if (room.phase === 'planning') return plan(s, id, actor)
+    if (options.mode === 'write') {
+      builderWrites++
+      if (prompt.includes("Address the reviewer's requested changes")) {
+        assert.match(prompt, /Address the reviewer's requested changes \(Add edge-case assertion\.\)/)
+      }
+      s.tool(id, actor, 'supercode_task', { operation: 'submit', taskId: options.taskId, revision: room.tasks.find(item => item.id === options.taskId).revision, evidence: ['Passes checks.'] })
+    } else if (actor === 'reviewer') {
+      const task = room.tasks.find(item => item.id === options.taskId)
+      const verdict = task.title === 'Tested add' && !firstReviewed ? (firstReviewed = true, 'changes') : 'pass'
+      s.tool(id, actor, 'supercode_review', { taskId: task.id, revision: task.revision, verdict, evidence: [verdict === 'changes' ? 'Add edge-case assertion.' : 'Verified.'] })
+    } else if (actor === 'lead') {
+      for (const task of room.tasks.filter(item => item.status === 'review' && item.review?.verdict === 'pass')) {
+        s.tool(id, actor, 'supercode_task', { operation: 'accept', taskId: task.id, revision: task.revision })
+      }
+      if (s.get(id).tasks.every(item => item.status === 'done')) {
+        s.tool(id, actor, 'supercode_finish', { summary: 'All tasks reviewed and accepted.' })
+      }
+    }
+  })
+  await f.s.command(f.id, command('plan')); await idle(f.s, f.id)
+  await f.s.command(f.id, command('message', { text: 'Please add a second task.', recipient: 'lead' })); await idle(f.s, f.id)
+  assert.equal(f.s.get(f.id).tasks.length, 2)
+  assert.equal(f.s.get(f.id).status, 'awaiting-approval')
+  await f.s.command(f.id, command('approve', { revision: f.s.get(f.id).revision })); await idle(f.s, f.id)
+  assert.equal(f.s.get(f.id).status, 'completed')
+  assert.equal(builderWrites, 3)
+})
+
+test('lead council dispatch runs specialists in parallel and automatically synthesizes their findings', async t => {
+  let activeSpecialists = 0, maxConcurrentSpecialists = 0
+  const f = await fixture(t, async (s, id, actor, prompt) => {
+    if (actor === 'lead' && !prompt.includes('Synthesize your teammates')) {
+      s.tool(id, 'lead', 'supercode_post', { text: 'Council: analyze trade-offs from your specialist angles.', recipient: 'team' })
+    } else if (actor !== 'lead') {
+      assert.match(prompt, /Contribute your distinct specialist perspective/)
+      activeSpecialists++
+      maxConcurrentSpecialists = Math.max(maxConcurrentSpecialists, activeSpecialists)
+      await tick()
+      activeSpecialists--
+      s.tool(id, actor, 'supercode_post', { text: `${actor} perspective on trade-offs.` })
+    } else if (actor === 'lead') {
+      assert.match(prompt, /Synthesize your teammates/)
+      s.tool(id, 'lead', 'supercode_post', { text: 'Final synthesized council recommendation.' })
+    }
+  })
+  await f.s.command(f.id, command('start')); await idle(f.s, f.id)
+  const room = f.s.get(f.id)
+  assert.equal(room.status, 'draft'); assert.equal(room.chatOnly, true)
+  assert.equal(maxConcurrentSpecialists, 2)
+  assert.deepEqual(f.calls.map(c => c.actor), ['lead', 'builder', 'reviewer', 'lead'])
+  assert.equal(room.messages.at(-1).memberId, 'lead')
+  assert.equal(room.messages.at(-1).text, 'Final synthesized council recommendation.')
+})
+
+test('@team work request enters planning immediately when lead calls supercode_start_plan without running redundant chat turns', async t => {
+  const f = await fixture(t, async (s, id, actor, prompt, options) => {
+    const room = s.get(id)
+    if (options.mode === 'chat' && actor === 'lead') {
+      const user = room.messages.findLast(m => m.kind === 'user')
+      if (user.text.includes('Audit workspace')) s.tool(id, 'lead', 'supercode_start_plan', { messageId: user.id })
+    } else if (room.status === 'planning' && actor !== 'lead') {
+      s.tool(id, actor, 'supercode_post', { text: `${actor} inspected workspace.` })
+    } else if (room.status === 'planning' && actor === 'lead') {
+      s.tool(id, 'lead', 'supercode_task', { operation: 'propose', title: 'Audit files', ownerId: 'builder', criteria: 'Complete audit.' })
+      s.tool(id, 'lead', 'supercode_plan_ready', {})
+    }
+  })
+  await f.s.command(f.id, command('start')); await idle(f.s, f.id)
+  f.calls.length = 0
+  await f.s.command(f.id, command('message', { text: 'Audit workspace architecture', recipient: 'team' })); await idle(f.s, f.id)
+  assert.equal(f.s.get(f.id).status, 'awaiting-approval')
+  assert.deepEqual(f.calls.filter(c => c.mode === 'chat').map(c => c.actor), ['lead'])
+})

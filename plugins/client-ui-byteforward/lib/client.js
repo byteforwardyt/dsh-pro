@@ -43,7 +43,8 @@ window.__ModuleLoader__.load({
     // sits above. Hover uses the same token as that control, and the collapsed
     // rail gets the host's own 36px circle treatment.
     const STYLE = [
-      ".dshd-yt{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;",
+      ".dshd-yt{position:relative;z-index:20;pointer-events:auto;cursor:pointer;",
+      "display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;",
       "box-sizing:border-box;width:42px;height:42px;border-radius:12px;text-decoration:none;",
       "color:var(--dsw-alias-label-primary,#f9fafb);",
       "transition:background-color var(--ds-transition-duration-fast,.1s) var(--ds-ease-in-out,ease);",
@@ -53,9 +54,17 @@ window.__ModuleLoader__.load({
       ".dshd-yt:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#679efe);",
       "outline-offset:2px}",
       ".dshd-yt-icon{display:inline-flex;flex:0 0 auto;width:18px;height:18px;",
-      "align-items:center;justify-content:center;overflow:visible}",
+      "align-items:center;justify-content:center;overflow:visible;pointer-events:none}",
       "@media (prefers-reduced-motion:reduce){.dshd-yt{transition:none}}",
     ].join("");
+
+    function openChannel(event) {
+      if (event && typeof event.stopPropagation === "function") event.stopPropagation();
+      if (typeof window !== "undefined" && typeof window.open === "function") {
+        if (event && typeof event.preventDefault === "function") event.preventDefault();
+        window.open(CHANNEL_URL, "_blank", "noopener,noreferrer");
+      }
+    }
 
     function ensureStyle() {
       if (typeof document === "undefined") return;
@@ -96,49 +105,54 @@ window.__ModuleLoader__.load({
           rel: "noreferrer noopener",
           title: "Subscribe to Byte Forward on YouTube",
           "aria-label": "Subscribe to Byte Forward on YouTube",
+          onClick: openChannel,
         },
         React.createElement("span", { key: "i", className: "dshd-yt-icon" }, React.createElement(PlayMark)),
       );
     }
 
     const ABOUT_CSS = [
-      // 720/12 and a tertiary secondary-text token match the geometry of the
-      // sibling Accounts section (client-ui-accounts/lib/client.js: .dshd-acc /
-      // .dshd-acc-intro) so the two settings panels read as one author.
-      ".dshd-about{display:flex;flex-direction:column;gap:12px;max-width:720px}",
-      ".dshd-about h2{font:var(--dsw-font-base-strong-16,500 16px/24px sans-serif);margin:0;",
+      ".dshd-about{display:flex;flex-direction:column;gap:14px;max-width:960px}",
+      ".dshd-about h2{font:600 18px/26px -apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:-.02em;margin:0;",
       "color:var(--dsw-alias-label-primary,#f9fafb)}",
-      ".dshd-about p{font:var(--dsw-font-s-14,14px/22px sans-serif);margin:0;",
-      "color:var(--dsw-alias-label-tertiary,#adb2b8)}",
-      // Version identity: a selectable, copy-pasteable line so a bug report can
-      // quote a build number instead of "it's broken on my Mac".
+      ".dshd-about h3{font:600 14px/20px -apple-system,BlinkMacSystemFont,sans-serif;margin:0;",
+      "color:var(--dsw-alias-label-primary,#f9fafb)}",
+      ".dshd-about p{font:var(--dsw-font-s-14,13px/21px sans-serif);margin:0;",
+      "color:var(--dsw-alias-label-secondary,#cfd3d6)}",
+      ".dshd-about-hero{display:flex;flex-direction:column;gap:14px;padding:20px 22px;border-radius:14px;",
+      "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
+      "background:var(--dsw-alias-bg-layer-1,#19191b)}",
       ".dshd-about-version{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
-      ".dshd-about-version-text{font:var(--dsw-font-markdown-code-block,13px/22px monospace);",
-      "padding:6px 10px;border-radius:8px;user-select:all;",
-      "background:var(--dsw-alias-bg-module-platform,#2c2d2f);",
-      "color:var(--dsw-alias-label-tertiary,#adb2b8)}",
+      ".dshd-about-version-text{font:var(--dsw-font-markdown-code-block,12px/20px ui-monospace,SFMono-Regular,Menlo,monospace);",
+      "padding:6px 12px;border-radius:9px;user-select:all;border:1px solid var(--dsw-alias-border-l1,rgba(255,255,255,.08));",
+      "background:var(--dsw-alias-bg-base,#151517);",
+      "color:var(--dsw-alias-label-secondary,#cfd3d6)}",
       ".dshd-about-copy{display:inline-flex;align-items:center;justify-content:center;",
-      "height:28px;padding:0 10px;border-radius:14px;cursor:pointer;white-space:nowrap;",
-      "font:var(--dsw-font-xxs-12,12px/18px sans-serif);",
+      "height:32px;padding:0 12px;border-radius:9px;cursor:pointer;white-space:nowrap;",
+      "font:500 12px/18px -apple-system,BlinkMacSystemFont,sans-serif;",
       "color:var(--dsw-alias-label-primary,#f9fafb);background:transparent;",
       "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
       "transition:background-color var(--ds-transition-duration-fast,.1s) var(--ds-ease-in-out,ease)}",
       ".dshd-about-copy:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08))}",
       ".dshd-about-copy:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#679efe);",
       "outline-offset:2px}",
-      ".dshd-about-card{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;",
+      ".dshd-about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:stretch}",
+      ".dshd-about-card{display:flex;align-items:center;gap:14px;padding:18px 20px;border-radius:14px;",
       "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
-      "background:var(--dsw-alias-bg-layer-3,#353638)}",
+      "background:var(--dsw-alias-bg-layer-1,#19191b)}",
+      ".dshd-about-legal-card{display:flex;flex-direction:column;justify-content:space-between;gap:14px;padding:18px 20px;border-radius:14px;",
+      "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
+      "background:var(--dsw-alias-bg-layer-1,#19191b)}",
       ".dshd-about-yt{display:inline-flex;align-items:center;justify-content:center;",
-      "width:40px;height:40px;flex:0 0 auto;border-radius:10px;",
+      "width:42px;height:42px;flex:0 0 auto;border-radius:11px;",
       "background:color-mix(in srgb,#ff0033 14%,transparent)}",
-      ".dshd-about-body{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}",
-      ".dshd-about-name{font:var(--dsw-font-s-strong-14,500 14px/22px sans-serif);",
+      ".dshd-about-body{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}",
+      ".dshd-about-name{font:600 14px/20px -apple-system,BlinkMacSystemFont,sans-serif;",
       "color:var(--dsw-alias-label-primary,#f9fafb)}",
       ".dshd-about-handle{font:var(--dsw-font-xxs-12,12px/18px sans-serif);",
       "color:var(--dsw-alias-label-tertiary,#adb2b8)}",
-      ".dshd-about-sub{display:inline-flex;align-items:center;justify-content:center;height:36px;",
-      "padding:0 16px;border-radius:18px;text-decoration:none;font:var(--dsw-font-s-14,14px/22px sans-serif);",
+      ".dshd-about-sub{display:inline-flex;align-items:center;justify-content:center;height:34px;",
+      "padding:0 15px;border-radius:9px;text-decoration:none;font:500 12px/18px -apple-system,BlinkMacSystemFont,sans-serif;",
       "background:var(--dsw-alias-button-primary-fill,#f9fafb);",
       "color:var(--dsw-alias-label-primary-foreground,#0f1115);",
       "transition:background-color var(--ds-transition-duration-fast,.1s) var(--ds-ease-in-out,ease)}",
@@ -146,19 +160,16 @@ window.__ModuleLoader__.load({
       ".dshd-about-sub:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#679efe);",
       "outline-offset:2px}",
       ".dshd-about-legal{display:flex;gap:8px;flex-wrap:wrap}",
-      // Geometry matched to client-ui-accounts' .dshd-btn/.dshd-btn-outline (36px
-      // pill, 1px border-l2, same hover token) so this row and the Accounts
-      // section's buttons stop looking like different authors.
-      ".dshd-about-legal button{font:var(--dsw-font-s-14,14px/22px sans-serif);height:36px;",
-      "padding:0 14px;border-radius:18px;cursor:pointer;white-space:nowrap;",
+      ".dshd-about-legal button{font:500 12px/18px -apple-system,BlinkMacSystemFont,sans-serif;height:32px;",
+      "padding:0 12px;border-radius:9px;cursor:pointer;white-space:nowrap;",
       "color:var(--dsw-alias-label-primary,#f9fafb);background:transparent;",
       "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
       "transition:background-color var(--ds-transition-duration-fast,.1s) var(--ds-ease-in-out,ease)}",
       ".dshd-about-legal button:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08))}",
       ".dshd-about-legal button:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#679efe);",
       "outline-offset:2px}",
-      ".dshd-about-meta{font:var(--dsw-font-xxs-12,12px/18px sans-serif);",
-      "color:var(--dsw-alias-label-tertiary,#adb2b8)}",
+      ".dshd-about-meta{font:var(--dsw-font-xxs-12,12px/18px sans-serif)!important;",
+      "color:var(--dsw-alias-label-tertiary,#adb2b8)!important}",
       "@media (prefers-reduced-motion:reduce){",
       ".dshd-about-sub,.dshd-about-legal button,.dshd-about-copy{transition:none}}",
     ].join("");
@@ -227,6 +238,18 @@ window.__ModuleLoader__.load({
           },
           copied ? "Copied" : "Copy",
         ),
+        typeof bridge.openUpdatePage === "function"
+          ? React.createElement(
+              "button",
+              {
+                key: "u",
+                type: "button",
+                className: "dshd-about-copy",
+                onClick: () => { try { void bridge.openUpdatePage(); } catch {} },
+              },
+              "Release notes & downloads",
+            )
+          : null,
       );
     }
 
@@ -255,56 +278,72 @@ window.__ModuleLoader__.load({
 
     /**
      * The About page. Ordered what this is → which build → who made it → legal
-     * notice: title, then the copyable version line, then the pitch, then the
-     * Byte Forward card (demoted below both so it no longer dominates the
-     * panel), then the notice buttons and the attribution footer.
+     * notice: Hero Bento card with title, pitch and copyable version badge,
+     * followed by a 2-column Bento grid for the Byte Forward creator card and
+     * the Open-source & Legal Notices card.
      */
     function AboutSection() {
       ensureAboutStyle();
       return React.createElement(
         "div",
         { className: "dshd-about" },
-        React.createElement("h2", { key: "t" }, "About DSH PRO"),
-        React.createElement(VersionMeta, { key: "version" }),
         React.createElement(
-          "p",
-          { key: "p1" },
-          "DSH PRO — Enhanced Desktop Edition. Made by Byte Forward. We wrapped "
-            + "DeepSeek Harness into a desktop app so anyone can use it with a click — "
-            + "not everyone loves the terminal, and the harness is worth more people "
-            + "getting to try it.",
+          "div",
+          { key: "hero", className: "dshd-about-hero" },
+          React.createElement("h2", { key: "t" }, "About DSH PRO"),
+          React.createElement(
+            "p",
+            { key: "p1" },
+            "DSH PRO — Enhanced Desktop Edition. Made by Byte Forward. We wrapped "
+              + "DeepSeek Harness into a desktop app so anyone can use it with a click — "
+              + "not everyone loves the terminal, and the harness is worth more people "
+              + "getting to try it.",
+          ),
+          React.createElement(VersionMeta, { key: "version" }),
         ),
         React.createElement(
           "div",
-          { key: "card", className: "dshd-about-card" },
-          React.createElement("span", { key: "i", className: "dshd-about-yt" }, React.createElement(PlayMark)),
+          { key: "grid", className: "dshd-about-grid" },
           React.createElement(
             "div",
-            { key: "b", className: "dshd-about-body" },
-            React.createElement("span", { key: "n", className: "dshd-about-name" }, "Byte Forward"),
-            React.createElement("span", { key: "h", className: "dshd-about-handle" }, "@ByteForward on YouTube"),
+            { key: "card", className: "dshd-about-card" },
+            React.createElement("span", { key: "i", className: "dshd-about-yt" }, React.createElement(PlayMark)),
+            React.createElement(
+              "div",
+              { key: "b", className: "dshd-about-body" },
+              React.createElement("span", { key: "n", className: "dshd-about-name" }, "Byte Forward"),
+              React.createElement("span", { key: "h", className: "dshd-about-handle" }, "@ByteForward on YouTube"),
+            ),
+            React.createElement(
+              "a",
+              {
+                key: "s",
+                className: "dshd-about-sub",
+                href: CHANNEL_URL,
+                target: "_blank",
+                rel: "noreferrer noopener",
+                onClick: openChannel,
+              },
+              "Subscribe",
+            ),
           ),
           React.createElement(
-            "a",
-            {
-              key: "s",
-              className: "dshd-about-sub",
-              href: CHANNEL_URL,
-              target: "_blank",
-              rel: "noreferrer noopener",
-            },
-            "Subscribe",
+            "div",
+            { key: "legal-card", className: "dshd-about-legal-card" },
+            React.createElement(
+              "div",
+              { key: "lb", className: "dshd-about-body" },
+              React.createElement("h3", { key: "lh" }, "Open source & licenses"),
+              React.createElement(
+                "p",
+                { key: "attr", className: "dshd-about-meta" },
+                "Enhanced desktop client built on DeepSeek Harness (MIT licensed). "
+                  + "Not affiliated with or endorsed by DeepSeek. Redistributes open-source "
+                  + "packages including libvips via sharp (LGPL-3.0-or-later).",
+              ),
+            ),
+            LicenseButtons(),
           ),
-        ),
-        LicenseButtons(),
-        React.createElement(
-          "p",
-          { key: "attr", className: "dshd-about-meta" },
-          "Enhanced desktop client built on DeepSeek Harness. Not affiliated with, "
-            + "endorsed by, or an official release of DeepSeek or DeepSeek Harness. "
-            + "DeepSeek Harness is MIT licensed. This app redistributes several "
-            + "hundred open-source packages, one of which (libvips, via sharp) is "
-            + "LGPL-3.0-or-later.",
         ),
       );
     }

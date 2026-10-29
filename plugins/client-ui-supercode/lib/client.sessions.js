@@ -7,14 +7,89 @@ window.__ModuleLoader__.load({
     function createSessionIntegration(ctx, views) {
       const { request, Setup, Room, RoomHeader, Icon } = views;
       let snapshot = { data: null, drafts: {}, presentations: {}, errors: {}, busy: {}, error: '', pending: false }, stopped = false, timer;
+      let activeStreamId = '', activeStream = null;
       const listeners = new Set(), operations = new Set();
+      const sessionBridge = typeof window !== 'undefined' ? (window.__DSH_SUPERCODE_SESSIONS__ ||= {
+        snapshot: {},
+        listeners: new Set(),
+        getSnapshot() { return this.snapshot; },
+        subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); },
+        publish(next) { this.snapshot = next; this.listeners.forEach(fn => fn()); },
+      }) : null;
       const subscribe = fn => { listeners.add(fn); return () => listeners.delete(fn); };
       const getSnapshot = () => snapshot;
-      const update = patch => { snapshot = { ...snapshot, ...patch }; listeners.forEach(fn => fn()); };
       const roomFor = id => snapshot.data?.rooms.find(room => room.chatSessionId === id);
       const native = id => ctx.sessions.list.getSnapshot().byId[id];
+      function closeStream() {
+        if (activeStream) { try { activeStream.close?.(); } catch (_) {} activeStream = null; }
+        activeStreamId = '';
+      }
+      function publishSessions() {
+        if (!sessionBridge) return;
+        const next = {};
+        for (const room of snapshot.data?.rooms || []) {
+          if (!room?.chatSessionId) continue;
+          next[room.chatSessionId] = {
+            roomId: room.id,
+            status: room.status,
+            running: ['planning', 'running', 'discussing', 'pausing'].includes(room.status),
+            pendingInteraction: room.status === 'awaiting-approval' ? 'plan-review' : room.status === 'blocked' ? 'approval' : undefined,
+            updatedAt: typeof room.updatedAt === 'number' ? room.updatedAt : (room.revision || 0),
+          };
+        }
+        sessionBridge.publish(next);
+      }
+      function syncStream() {
+        if (stopped || typeof EventSource !== 'function') { closeStream(); return; }
+        const byId = ctx.sessions.list.getSnapshot()?.byId || {};
+        const rooms = snapshot.data?.rooms || [];
+        const retained = rooms.find(room => byId[room.chatSessionId]?.retainedBy?.mainView > 0);
+        const running = rooms.find(room => ['planning', 'running', 'discussing', 'pausing'].includes(room.status));
+        const target = retained || running || (rooms.length === 1 ? rooms[0] : null);
+        const nextId = target?.id || '';
+        if (nextId === activeStreamId) return;
+        closeStream();
+        if (!nextId) return;
+        try {
+          const source = new EventSource('/dsh-supercode/rooms/' + encodeURIComponent(nextId) + '/events');
+          source.onmessage = event => {
+            if (stopped) return;
+            try {
+              const payload = JSON.parse(event.data);
+              if (payload?.room) accept(payload.room);
+            } catch (_) {}
+          };
+          activeStreamId = nextId;
+          activeStream = source;
+        } catch (_) { closeStream(); }
+      }
+      const update = patch => { snapshot = { ...snapshot, ...patch }; publishSessions(); syncStream(); listeners.forEach(fn => fn()); };
       const present = (id, patch) => update({ presentations: { ...snapshot.presentations, [id]: { ...snapshot.presentations[id], ...patch } } });
       const draftUpdate = (id, patch) => update({ drafts: { ...snapshot.drafts, [id]: { ...snapshot.drafts[id], ...patch } } });
+      function resolveMention(room, rawText, fallback = 'lead') {
+        const text = String(rawText || '');
+        const trimmed = text.trimStart();
+        if (!room || !trimmed.startsWith('@')) return { recipient: fallback || 'lead', text, mentioned: false };
+        const body = trimmed.slice(1);
+        const candidates = [
+          { token: 'team', recipient: 'team' },
+          { token: 'lead', recipient: 'lead' },
+          ...(room.members || []).flatMap(member => [
+            member.name ? { token: String(member.name), recipient: member.id } : null,
+            member.id ? { token: String(member.id), recipient: member.id } : null,
+          ]).filter(Boolean),
+        ].sort((a, b) => b.token.length - a.token.length);
+        for (const { token, recipient } of candidates) {
+          if (body.toLowerCase().startsWith(token.toLowerCase())) {
+            const after = body.slice(token.length);
+            if (!after || /^[\s,:;.-]+/.test(after)) {
+              const stripped = after.replace(/^[\s,:;]+/, '').trimStart();
+              return { recipient, text: stripped || trimmed, mentioned: true };
+            }
+          }
+        }
+        return { recipient: fallback || 'lead', text, mentioned: false };
+      }
       function accept(room) {
         const data = snapshot.data;
         if (!data || data.rooms.some(old => old.id === room.id && old.revision > room.revision)) return;
@@ -40,7 +115,7 @@ window.__ModuleLoader__.load({
           }
         }
         if (snapshot.pending && selected) { drafts[selected.id] = { ...drafts[selected.id], enabled: true, requestId: crypto.randomUUID() }; changed = true; }
-        if (changed) update({ drafts, pending: false });
+        if (changed) update({ drafts, pending: false }); else syncStream();
       }
       async function refresh() {
         try {
@@ -79,8 +154,10 @@ window.__ModuleLoader__.load({
         if (!text.trim()) throw Error('Enter a message for your team.');
         const room = roomFor(id), draft = snapshot.drafts[id] || {};
         if (room) {
-          await command(id, draft.newGoal && ['completed', 'stopped'].includes(room.status) ? 'new-goal' : 'message', { text, recipient: draft.recipient || 'lead' });
-          draftUpdate(id, { newGoal: false }); return;
+          const isNewGoal = draft.newGoal && ['completed', 'stopped'].includes(room.status);
+          const resolved = isNewGoal ? { recipient: draft.recipient || 'lead', text, mentioned: false } : resolveMention(room, text, draft.recipient || 'lead');
+          await command(id, isNewGoal ? 'new-goal' : 'message', { text: resolved.text, recipient: resolved.recipient });
+          draftUpdate(id, { newGoal: false, ...(resolved.mentioned ? { recipient: resolved.recipient } : {}) }); return;
         }
         await mutate(id, async () => {
           if (!draft.ready) throw Error('Choose a model for every agent before sending.');
@@ -141,14 +218,14 @@ window.__ModuleLoader__.load({
         ctx.effect(() => {
           const poll = async () => { await refresh(); if (!stopped) timer = setTimeout(poll, 2000); }; void poll();
           const off = ctx.sessions.list.subscribe(followNavigation);
-          return () => { stopped = true; off(); clearTimeout(timer); listeners.clear(); };
+          return () => { stopped = true; off(); clearTimeout(timer); closeStream(); sessionBridge?.publish({}); listeners.clear(); };
         });
         ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: 'supercode' }, Launch));
         ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({ name: 'sidebar.panellist', id: 'supercode', order: -100, label: () => 'New SuperCode' }, Icon));
         ctx.slots.inject('conversation.input.left', () => ctx.slots.register({ name: 'conversation.input.left', id: 'supercode-mode', order: 20 }, Mode));
         ctx.slots.inject('sidebar.session.row.leading', () => ctx.slots.register({ name: 'sidebar.session.row.leading', id: 'supercode-mark', order: 10 }, Mark));
       }
-      return { install, Launch, Mode, Mark, Surface, resolve, submit, command, roomFor, accept, refresh, setDraft, getSnapshot };
+      return { install, Launch, Mode, Mark, Surface, resolve, resolveMention, sessionBridge, submit, command, roomFor, accept, refresh, setDraft, getSnapshot };
     }
     return { createSessionIntegration };
   },

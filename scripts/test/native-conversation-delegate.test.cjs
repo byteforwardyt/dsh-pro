@@ -6,10 +6,10 @@ const path = require('node:path')
 const vm = require('node:vm')
 const { transform, MARKER } = require('../native-conversation-delegate.cjs')
 const store = path.resolve(__dirname, '../../node_modules/.pnpm')
-const packageDirectory = fs.readdirSync(store).find(name => name.startsWith('@deepseek-ai+dsh-client-ui-conversation@0.2.0-rc.2'))
+const packageDirectory = fs.readdirSync(store).find(name => name.startsWith('@deepseek-ai+dsh-client-ui-conversation@0.2.1-rc.4'))
 assert(packageDirectory, 'Pinned native conversation package must be installed')
 const installedBundle = fs.readFileSync(path.join(store, packageDirectory, 'node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/client.js'), 'utf8')
-const bundle = installedBundle.includes(MARKER) ? fs.readFileSync(path.resolve(__dirname, '../../node_modules/.cache/dsh-conversation-upstream-0.2.0-rc.2.js'), 'utf8') : installedBundle
+const bundle = installedBundle.includes(MARKER) ? fs.readFileSync(path.resolve(__dirname, '../../node_modules/.cache/dsh-conversation-upstream-0.2.1-rc.4.js'), 'utf8') : installedBundle
 
 test('native delegate patch fails closed on incompatible upstream and is repeatable', () => {
   const output = transform(bundle)

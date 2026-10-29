@@ -219,7 +219,7 @@ export class RoomService {
         next.title = next.goal.slice(0, 80); next.runId = randomUUID(); next.runNumber++
         next.tasks = []; next.queue = []; next.approved = false; next.phase = 'planning'; next.status = 'draft'
         next.usage = { calls: 0, input: 0, output: 0, cost: null, activeMs: 0 }; next.checkpoint = { calls: 0, activeMs: 0 }
-        next.startedAt = null; next.failures = 0; delete next.reason; delete next.pendingOutcome; delete next.discussionReturn; delete next.chatOnly; delete next.chatInFlight
+        next.startedAt = null; next.failures = 0; delete next.reason; delete next.pendingOutcome; delete next.discussionReturn; delete next.chatOnly; delete next.chatInFlight; delete next.investigatedIds
         next.memberStates = Object.fromEntries(members.map(item => [item.id, 'Waiting']))
         next.requests.push(requestId); message(next, 'user', next.goal)
       }).room
@@ -306,6 +306,7 @@ export class RoomService {
         check(actor === room.leadId && room.chatOnly && room.status === 'discussing' && !room.tasks.length && !room.approved, 'Only the lead can request planning from a conversation.', 403)
         const user = room.messages.findLast(entry => entry.kind === 'user' && entry.runId === room.runId)
         check(user && user.id === args.messageId, 'Choose the current user message, not a peer message or older request.', 409)
+        room.queue = room.queue.filter(item => item.messageId !== user.id)
         room.pendingOutcome = { kind: 'planning', messageId: user.id }
       } else if (name === 'supercode_post') {
         const entry = message(room, 'agent', text(args.text, 'Message', 16000), actor, {

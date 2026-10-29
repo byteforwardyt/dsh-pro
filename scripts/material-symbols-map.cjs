@@ -21,7 +21,7 @@ module.exports = {
     PluginPinwheel: 'extension', AlarmClock: 'alarm', Archive: 'archive', WrapLines: 'wrap_text', Nowrap: 'text_format',
     Wrap: 'wrap_text', CompareSplit: 'compare', Plan: 'edit_note', Compact: 'compress', Shield: 'shield',
     Unarchive: 'unarchive', Pin: 'push_pin', FlatList: 'format_list_bulleted', WorkspaceTree: 'account_tree',
-    ChevronsUpDown: 'unfold_more', ArchiveOff: 'unarchive', ArchiveCheck: 'inventory_2', SlidersTwo: 'tune', Microphone: 'mic',
+    ChevronsUpDown: 'unfold_more', ArchiveOff: 'unarchive', ArchiveCheck: 'inventory_2', SlidersTwo: 'tune', Microphone: 'mic', AppsAdd: 'extension',
   },
   views: { chat: 'code', trajectory: 'route', preview: 'web', files: 'folder_open', terminal: 'terminal' },
   settings: { general: 'settings', accounts: 'manage_accounts', account: 'person', workspaces: 'folder_open', about: 'info', usage: 'bar_chart', computer: 'desktop_windows', development: 'terminal', phone: 'smartphone', models: 'smart_toy', 'model-connections': 'hub', plugins: 'extension', 'agent-presets': 'tune' },

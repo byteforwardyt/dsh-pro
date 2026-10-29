@@ -1,7 +1,7 @@
 {
   "name": "@dsh-desktop/shell",
   "private": true,
-  "version": "0.1.66",
+  "version": "0.1.68",
   "description": "DSH PRO — Enhanced Desktop Edition for DeepSeek Harness",
   "license": "MIT",
   "main": "src/main.cjs",
@@ -10,8 +10,8 @@
     "start": "electron ."
   },
   "dependencies": {
-    "@deepseek-ai/dsh": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-mcp-client": "0.2.0-rc.2",
+    "@deepseek-ai/dsh": "0.2.1-rc.4",
+    "@deepseek-ai/dsh-mcp-client": "0.2.1-rc.4",
     "@dsh-desktop/auth-allowlist": "workspace:*",
     "@dsh-desktop/client-ui-accounts": "workspace:*",
     "@dsh-desktop/client-ui-model-visibility": "workspace:*",

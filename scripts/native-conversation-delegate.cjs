@@ -40,7 +40,7 @@ function transform(source) {
   replace('const { sessionId, useSession, useSessions, useConversation, renderSlot, renderFactorySlot } = props;', 'const { sessionId, useSession, useSessions, useConversation, renderSlot, renderFactorySlot } = props;\n            useDshDelegate(sessionId);')
   replace('function ConversationHeader({ sessionId, useSession, useConversation, renderSlot }) {', 'function ConversationHeader({ sessionId, useSession, useConversation, renderSlot }) {\n            useDshDelegate(sessionId);')
   replace('function DefaultConversationViews({ view,', 'function DefaultConversationViews({ sessionId, view,')
-  replace('function DefaultConversationViews({ sessionId, view, useSession, useConversation, useConversationViews, useInput, inputActions, useStore, actions, renderSlot, bindDraftMirror, openView, useInspectCall }) {', 'function DefaultConversationViews({ sessionId, view, useSession, useConversation, useConversationViews, useInput, inputActions, useStore, actions, renderSlot, bindDraftMirror, openView, useInspectCall }) {\n            const delegate = useDshDelegate(sessionId);')
+  replace('function DefaultConversationViews({ sessionId, view, useSession, useConversation, useConversationViews, inputActions, useStore, actions, renderSlot, bindDraftPersistence, openView, useInspectCall }) {', 'function DefaultConversationViews({ sessionId, view, useSession, useConversation, useConversationViews, inputActions, useStore, actions, renderSlot, bindDraftPersistence, openView, useInspectCall }) {\n            const delegate = useDshDelegate(sessionId);')
   replace('const viewId = view ?? active?.id;', 'const viewId = view ?? active?.id;\n            if (viewId === "chat" && delegate?.active) return (0, react_jsx_runtime.jsx)("div", { className: ConversationRoot_module_css_default.viewArea, children: delegate.content });')
   replace('const input = useInput((s) => s);\n\t\t\tconst notice', 'const delegate = useDshDelegate(sessionId);\n            if (delegate?.blocked) blocked = { reason: delegate.blocked };\n            const input = useInput((s) => s);\n\t\t\tconst notice')
   replace('const running = useSession((s) => s.running) ?? false;', 'const nativeRunning = useSession((s) => s.running) ?? false;\n            const running = delegate ? !!delegate.running : nativeRunning;')
@@ -57,7 +57,7 @@ function transform(source) {
 function apply(harness) {
   const pkg = path.join(harness, 'node_modules/@deepseek-ai/dsh-client-ui-conversation')
   const version = JSON.parse(fs.readFileSync(path.join(pkg, 'package.json'))).version
-  if (version !== '0.2.0-rc.2') throw Error('Review native conversation delegate for upstream ' + version)
+  if (version !== '0.2.1-rc.4') throw Error('Review native conversation delegate for upstream ' + version)
   const file = path.join(pkg, 'lib/client.js'), before = fs.readFileSync(file, 'utf8'), after = transform(before)
   if (after !== before) { fs.writeFileSync(file + '.dsh-stage', after); fs.renameSync(file + '.dsh-stage', file) }
 }
@@ -65,10 +65,10 @@ module.exports = { apply, transform, MARKER }
 function prepareDevelopment(root = path.resolve(__dirname, '..')) {
   require('./native-supercode-compat.cjs').prepareDevelopment(root)
   const store = path.join(root, 'node_modules/.pnpm')
-  const directory = fs.readdirSync(store).find(name => name.startsWith('@deepseek-ai+dsh-client-ui-conversation@0.2.0-rc.2'))
+  const directory = fs.readdirSync(store).find(name => name.startsWith('@deepseek-ai+dsh-client-ui-conversation@0.2.1-rc.4'))
   if (!directory) throw Error('Install the pinned native conversation package first.')
   const file = path.join(store, directory, 'node_modules/@deepseek-ai/dsh-client-ui-conversation/lib/client.js')
-  const cache = path.join(root, 'node_modules/.cache/dsh-conversation-upstream-0.2.0-rc.2.js')
+  const cache = path.join(root, 'node_modules/.cache/dsh-conversation-upstream-0.2.1-rc.4.js')
   const current = fs.readFileSync(file, 'utf8')
   if (!current.includes(MARKER)) { fs.mkdirSync(path.dirname(cache), { recursive: true }); fs.writeFileSync(cache, current) }
   const source = fs.readFileSync(cache, 'utf8'), output = transform(source)

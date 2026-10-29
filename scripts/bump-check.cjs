@@ -31,7 +31,7 @@ const ROOT = path.join(__dirname, '..')
 const MODULES = path.join(ROOT, 'node_modules', '.pnpm')
 
 /** The pi-ai version the auth surface was written against. See docs/MASTER-PLAN.md §D.6. */
-const PINNED_PI_AI = '0.87.1'
+const PINNED_PI_AI = '1.4.0'
 
 const results = []
 const record = (ok, name, detail) => { results.push({ ok, name, detail }); return ok }

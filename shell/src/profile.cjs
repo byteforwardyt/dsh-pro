@@ -44,12 +44,22 @@ const PROFILE_PATCH = `# DSH PRO composition layer, applied over dsh-base and ds
   disabled: true
 - id: product-analytics
   disabled: true
+- id: deepseek-account
+  disabled: true
+- id: ui-settings-account
+  disabled: true
+- id: account-controller
+  disabled: true
+- id: ui-sidebar-browser
+  disabled: false
+- id: session-query-sqlite
+  config:
+    path: ':memory:'
+    openAt: first-search
 
 - insert:
     - id: desktop-authorization
       name: '@dsh-desktop/auth-allowlist'
-    - id: desktop-schedule
-      name: '@deepseek-ai/dsh-schedule'
     # Our authorization subclass registers only explicitly vetted login flows.
 
     # HTTP surface for the authorization seam: account state, login attempts,

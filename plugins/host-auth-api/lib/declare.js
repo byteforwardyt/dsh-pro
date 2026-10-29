@@ -39,6 +39,15 @@ const DISPLAY_NAMES = {
   xai: 'Grok',
   openrouter: 'OpenRouter',
   'kimi-coding': 'Kimi',
+  opencode: 'OpenCode Zen',
+  anthropic: 'Anthropic',
+  deepseek: 'DeepSeek',
+  google: 'Google Gemini',
+  openai: 'OpenAI API',
+  groq: 'Groq',
+  cerebras: 'Cerebras',
+  mistral: 'Mistral',
+  together: 'Together AI',
 }
 
 /** @returns a human display name for a provider id; the id itself if unmapped. */

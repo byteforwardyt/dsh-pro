@@ -38,7 +38,7 @@ window.__ModuleLoader__.load({
       // 720px column), and the size container for the grid below: a container
       // query cannot style the element it queries, so the containment sits on the
       // section and .dshd-grid inside it is what responds.
-      ".dshd-acc{display:flex;flex-direction:column;gap:12px;padding:0;max-width:720px}",
+      ".dshd-acc{display:flex;flex-direction:column;gap:12px;padding:0;max-width:960px}",
       // No media query and no container query. The old `@media (max-width:820px)`
       // measured the viewport, which never described this box — the grid lives
       // in a fixed-width dialog that stays put whatever the window does. A
@@ -227,6 +227,18 @@ window.__ModuleLoader__.load({
     };
     // END GENERATED provider-icons
 
+    const EXTRA_PROVIDER_ICONS = {
+      opencode: "<path d=\"M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5zm2 0v14h12V5H6zm2.3 4.3a1 1 0 0 1 1.4 0l2.3 2.3a1 1 0 0 1 0 1.4l-2.3 2.3a1 1 0 1 1-1.4-1.4l1.6-1.6-1.6-1.6a1 1 0 0 1 0-1.4zM12 14h4a1 1 0 1 1 0 2h-4a1 1 0 1 1 0-2z\"></path>",
+      anthropic: "<path d=\"M13.83 3.52h3.46L23.5 20.48h-3.46l-6.21-16.96zm-7.12 0h3.62l6.21 16.96h-3.54l-1.26-3.58H5.26L4 20.48H.5L6.71 3.52zm-.44 10.6h4.46L8.5 7.72l-2.23 6.4z\"></path>",
+      google: "<path d=\"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c4.84 0 8.87-3.44 9.8-8h-9.8v-3.6h13.4c.14.8.2 1.6.2 2.4 0 6.63-5.37 12-12 12S0 18.63 0 12 5.37 0 12 0c3.24 0 6.18 1.28 8.34 3.36l-2.54 2.54C16.32 4.52 14.27 3.6 12 3.6z\"></path>",
+      openai: "<path d=\"M9.205 8.658v-2.26c0-.19.072-.333.238-.428l4.543-2.616c.619-.357 1.356-.523 2.117-.523 2.854 0 4.662 2.212 4.662 4.566 0 .167 0 .357-.024.547l-4.71-2.759a.797.797 0 00-.856 0l-5.97 3.473zm10.609 8.8V12.06c0-.333-.143-.57-.429-.737l-5.97-3.473 1.95-1.118a.433.433 0 01.476 0l4.543 2.617c1.309.76 2.189 2.378 2.189 3.948 0 1.808-1.07 3.473-2.76 4.163zM7.802 12.703l-1.95-1.142c-.167-.095-.239-.238-.239-.428V5.899c0-2.545 1.95-4.472 4.591-4.472 1 0 1.927.333 2.712.928L8.23 5.067c-.285.166-.428.404-.428.737v6.898zM12 15.128l-2.795-1.57v-3.33L12 8.658l2.795 1.57v3.33L12 15.128z\"></path>",
+      groq: "<path d=\"M13 2L4 14h7l-1 8 9-12h-7l1-8z\"></path>",
+      cerebras: "<path d=\"M12 2l8.66 5v10L12 22l-8.66-5V7L12 2zm0 2.31L5.34 8.15v7.7L12 19.69l6.66-3.84v-7.7L12 4.31zm0 3.69a4 4 0 1 1 0 8 4 4 0 0 1 0-8z\"></path>",
+      mistral: "<path d=\"M3 4h4v4H3V4zm14 0h4v4h-4V4zM3 8h8v4H3V8zm10 0h8v4h-8V8zM3 12h4v8H3v-8zm7 0h4v4h-4v-4zm7 0h4v8h-4v-8z\"></path>",
+      together: "<path d=\"M7 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm10 0a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM7 13a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm10 0a3 3 0 1 1 0 6 3 3 0 0 1 0-6z\"></path>",
+      "custom-gateway": "<path d=\"M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6zm2 1v1h2V7H6zm0 6a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H6zm0 2h2v1H6v-1z\"></path>",
+    };
+
     /**
      * Official brand mark for a provider, drawn at the caller's size and in the
      * caller's colour (the upstream monochrome variants are `currentColor`).
@@ -234,7 +246,7 @@ window.__ModuleLoader__.load({
      * spliced from a pinned package, never user or network data.
      */
     function ProviderMark({ provider, size }) {
-      const body = PROVIDER_ICONS[provider];
+      const body = PROVIDER_ICONS[provider] || EXTRA_PROVIDER_ICONS[provider];
       if (!body) return null;
       return h("svg", {
         viewBox: "0 0 24 24",
@@ -967,20 +979,43 @@ window.__ModuleLoader__.load({
      * starting Ollama flips the row green without reopening Settings.
      */
     const LOCAL_CSS = [
-      ".dshd-local{margin-top:28px}",
-      ".dshd-local h3{margin:0 0 4px;font:var(--dsw-font-s-strong-14,500 14px/22px sans-serif);",
+      ".dshd-local{margin-top:24px;display:flex;flex-direction:column;gap:10px}",
+      ".dshd-local-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}",
+      ".dshd-local h3{margin:0;font:var(--dsw-font-s-strong-14,500 14px/22px sans-serif);",
       "color:var(--dsw-alias-label-primary,#f9fafb)}",
-      ".dshd-local-intro{margin:0 0 12px;font:var(--dsw-font-xs-13,13px/20px sans-serif);",
+      ".dshd-local-intro{margin:0;font:var(--dsw-font-xs-13,13px/20px sans-serif);",
       "color:var(--dsw-alias-label-tertiary,#adb2b8)}",
-      ".dshd-local-row{display:flex;align-items:center;gap:10px;padding:10px 14px;",
-      "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:10px;",
-      "margin-bottom:8px;font:var(--dsw-font-xs-13,13px/20px sans-serif)}",
+      ".dshd-local-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}",
+      ".dshd-local-row{display:flex;align-items:center;gap:10px;padding:14px 16px;",
+      "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:14px;",
+      "background:var(--dsw-alias-bg-layer-1,#1d1e21);",
+      "transition:border-color .15s ease,background-color .15s ease;",
+      "font:var(--dsw-font-xs-13,13px/20px sans-serif)}",
+      ".dshd-local-row:hover{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.2))}",
       ".dshd-local-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;",
       "background:var(--dsw-alias-border-l3,rgba(255,255,255,.25))}",
       ".dshd-local-row.is-up .dshd-local-dot{background:var(--dsw-alias-state-success,#3fb950)}",
       ".dshd-local-name{font-weight:500;color:var(--dsw-alias-label-primary,#f9fafb)}",
       ".dshd-local-sub{color:var(--dsw-alias-label-tertiary,#adb2b8);min-width:0;",
-      "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:auto}",
+      ".dshd-direct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(216px,1fr));gap:10px}",
+      ".dshd-direct-card{display:flex;flex-direction:column;gap:10px;padding:12px 14px;",
+      "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:14px;",
+      "background:var(--dsw-alias-bg-layer-3,#353638);transition:border-color .15s ease}",
+      ".dshd-direct-card:hover{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.2))}",
+      ".dshd-direct-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}",
+      ".dshd-direct-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;flex-wrap:wrap}",
+      ".dshd-env-badge{font:500 10px/16px monospace;padding:1px 7px;border-radius:999px;white-space:nowrap;",
+      "color:var(--dsw-alias-label-secondary,#cfd3d6);background:var(--dsw-alias-bg-module-platform,#2c2d2f);border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12))}",
+      ".dshd-gw-card{display:flex;flex-direction:column;gap:12px;padding:16px 18px;",
+      "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));border-radius:14px;",
+      "background:var(--dsw-alias-bg-layer-3,#353638)}",
+      ".dshd-gw-presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap}",
+      ".dshd-gw-pill{height:26px;padding:0 10px;border-radius:999px;font-size:11px;font-weight:500;cursor:pointer;",
+      "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
+      "background:var(--dsw-alias-bg-module-platform,#2c2d2f);color:var(--dsw-alias-label-secondary,#cfd3d6)}",
+      ".dshd-gw-pill:hover{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.22));color:var(--dsw-alias-label-primary,#f9fafb)}",
+      ".dshd-gw-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}",
     ].join("");
     const LOCAL_STYLE_ID = "dshd-local-style";
     function ensureLocalStyle() {
@@ -989,6 +1024,239 @@ window.__ModuleLoader__.load({
       el.id = LOCAL_STYLE_ID;
       el.textContent = LOCAL_CSS;
       document.head.appendChild(el);
+    }
+
+    function OpenCodeZenCard() {
+      const [zen, setZen] = useState(null);
+      const [editing, setEditing] = useState(false);
+      const [apiKey, setApiKey] = useState("");
+      const [busy, setBusy] = useState(false);
+      const [armed, setArmed] = useState(false);
+      const [error, setError] = useState(null);
+      const armTimer = useRef(null);
+
+      useEffect(() => {
+        let alive = true;
+        fetch("/dsh-auth/opencode", { credentials: "same-origin" })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => { if (alive && d) setZen(d); })
+          .catch(() => {});
+        return () => { alive = false; clearTimeout(armTimer.current); };
+      }, []);
+
+      const run = async (payload) => {
+        if (busy) return;
+        setBusy(true);
+        setError(null);
+        const res = await post("opencode", payload);
+        setBusy(false);
+        if (!res.ok) {
+          setError(res.error || "Could not update OpenCode Zen.");
+          return;
+        }
+        setZen(res);
+        setEditing(false);
+        setApiKey("");
+        setArmed(false);
+      };
+
+      const configured = Boolean(zen?.configured);
+      const cliAvailable = Boolean(zen?.cliAvailable);
+      const modelCount = zen?.modelCount || 0;
+
+      return h(
+        "div",
+        { className: "dshd-card" },
+        h(
+          "div",
+          { key: "head", className: "dshd-card-head" },
+          h(
+            "div",
+            { key: "id", className: "dshd-card-ident" },
+            h(
+              "span",
+              { key: "m", className: "dshd-card-mark" },
+              h(ProviderMark, { provider: "opencode", size: 20 }),
+            ),
+            h(
+              "div",
+              { key: "t", className: "dshd-card-title" },
+              h("span", { key: "n", className: "dshd-card-name" }, "OpenCode Zen"),
+              h("span", { key: "s", className: "dshd-card-sub" }, "OpenCode Zen & Go coding gateway"),
+            ),
+          ),
+          configured ? h("span", { key: "b", className: "dshd-badge" }, "Connected") : null,
+        ),
+        h(
+          "div",
+          { key: "body", className: "dshd-card-body" },
+          error ? h("div", { key: "err", className: "dshd-err", role: "alert" }, error) : null,
+          configured
+            ? h(
+                "div",
+                { key: "connected", className: "dshd-hint" },
+                `${modelCount > 0 ? modelCount : "80+"} OpenCode Zen models active in the model picker (Claude, GPT-5, DeepSeek, Gemini, Kimi, plus free Zen models).`,
+              )
+            : editing
+              ? h(
+                  "div",
+                  { key: "form", className: "dshd-prompt" },
+                  h(
+                    "div",
+                    { key: "m", className: "dshd-prompt-msg" },
+                    "Paste your API key from ",
+                    h(
+                      "a",
+                      {
+                        className: "dshd-link",
+                        href: "https://opencode.ai/auth",
+                        target: "_blank",
+                        rel: "noreferrer noopener",
+                      },
+                      "opencode.ai/auth ↗",
+                    ),
+                  ),
+                  h(
+                    "form",
+                    {
+                      key: "f",
+                      className: "dshd-row",
+                      onSubmit: (e) => {
+                        e.preventDefault();
+                        if (!busy && apiKey.trim()) void run({ action: "connect", apiKey: apiKey.trim() });
+                      },
+                    },
+                    h("input", {
+                      key: "i",
+                      className: "dshd-input",
+                      type: "password",
+                      placeholder: "sk-…",
+                      "aria-label": "OpenCode Zen API key",
+                      value: apiKey,
+                      disabled: busy,
+                      onChange: (e) => setApiKey(e.target.value),
+                    }),
+                    h(
+                      "button",
+                      {
+                        key: "s",
+                        type: "submit",
+                        className: "dshd-btn dshd-btn-primary",
+                        disabled: busy || !apiKey.trim(),
+                      },
+                      busy ? "Connecting…" : "Connect",
+                    ),
+                  ),
+                )
+              : h(
+                  "div",
+                  { key: "hint", className: "dshd-hint" },
+                  cliAvailable
+                    ? "OpenCode CLI credentials detected on this Mac — connect in one click, or use a key from opencode.ai/auth."
+                    : "Access curated coding models and free Zen tier models with an OpenCode key from ",
+                  !cliAvailable
+                    ? h(
+                        "a",
+                        {
+                          className: "dshd-link",
+                          href: "https://opencode.ai/auth",
+                          target: "_blank",
+                          rel: "noreferrer noopener",
+                        },
+                        "opencode.ai/auth ↗",
+                      )
+                    : null,
+                ),
+        ),
+        h(
+          "div",
+          { key: "foot", className: "dshd-card-foot" },
+          configured
+            ? [
+                h(
+                  "button",
+                  {
+                    key: "refresh",
+                    type: "button",
+                    className: "dshd-btn dshd-btn-quiet",
+                    disabled: busy,
+                    onClick: () => void run({ action: "refresh" }),
+                  },
+                  busy ? "Refreshing…" : "Refresh models",
+                ),
+                h(
+                  "button",
+                  {
+                    key: "out",
+                    type: "button",
+                    disabled: busy,
+                    className: "dshd-btn dshd-btn-signout" + (armed ? " dshd-btn-armed" : ""),
+                    onBlur: () => { clearTimeout(armTimer.current); setArmed(false); },
+                    onClick: () => {
+                      if (busy) return;
+                      if (!armed) {
+                        setArmed(true);
+                        armTimer.current = setTimeout(() => setArmed(false), ARM_MS);
+                        return;
+                      }
+                      clearTimeout(armTimer.current);
+                      setArmed(false);
+                      void run({ action: "disconnect" });
+                    },
+                  },
+                  busy ? "Signing out…" : armed ? "Confirm sign out" : "Sign out",
+                ),
+              ]
+            : editing
+              ? h(
+                  "button",
+                  {
+                    key: "cancel",
+                    type: "button",
+                    className: "dshd-btn dshd-btn-quiet",
+                    disabled: busy,
+                    onClick: () => { setEditing(false); setError(null); setApiKey(""); },
+                  },
+                  "Cancel",
+                )
+              : cliAvailable
+                ? [
+                    h(
+                      "button",
+                      {
+                        key: "key",
+                        type: "button",
+                        className: "dshd-btn dshd-btn-outline",
+                        disabled: busy,
+                        onClick: () => setEditing(true),
+                      },
+                      "Enter key",
+                    ),
+                    h(
+                      "button",
+                      {
+                        key: "cli",
+                        type: "button",
+                        className: "dshd-btn dshd-btn-primary",
+                        disabled: busy,
+                        onClick: () => void run({ action: "connect", useCli: true }),
+                      },
+                      busy ? "Connecting…" : "Sign in with OpenCode CLI",
+                    ),
+                  ]
+                : h(
+                    "button",
+                    {
+                      key: "in",
+                      type: "button",
+                      className: "dshd-btn dshd-btn-primary",
+                      disabled: busy,
+                      onClick: () => setEditing(true),
+                    },
+                    "Sign in with OpenCode Zen",
+                  ),
+        ),
+      );
     }
 
     function LocalModelsSection() {
@@ -1011,20 +1279,21 @@ window.__ModuleLoader__.load({
         : Object.entries(servers).filter(([, v]) => v && typeof v === "object");
       if (entries.length === 0) return null;
       return h("div", { className: "dshd-local" },
-        h("h3", { key: "h" }, "Local models"),
+        h("div", { key: "h", className: "dshd-local-head" }, h("h3", null, "Local models")),
         h("p", { key: "p", className: "dshd-local-intro" },
           "Run models on this Mac with Ollama or LM Studio — no account, no key. "
             + "A running server is detected automatically and its models join the picker."),
-        entries.map(([id, srv]) =>
-          h("div", { key: id, className: "dshd-local-row" + (srv.up ? " is-up" : "") },
-            h("i", { key: "d", className: "dshd-local-dot" }),
-            h("span", { key: "n", className: "dshd-local-name", "data-dshd-provider": id }, srv.displayName || id),
-            h("span", { key: "s", className: "dshd-local-sub" },
-              srv.up
-                ? (srv.models.length === 0
-                    ? "Running — no models installed yet"
-                    : `${srv.models.length} model${srv.models.length === 1 ? "" : "s"}: ${srv.models.slice(0, 3).join(", ")}${srv.models.length > 3 ? "…" : ""}`)
-                : `Not running · ${srv.hint || "start it and it appears here"}`))));
+        h("div", { key: "g", className: "dshd-local-grid" },
+          entries.map(([id, srv]) =>
+            h("div", { key: id, className: "dshd-local-row" + (srv.up ? " is-up" : "") },
+              h("i", { key: "d", className: "dshd-local-dot" }),
+              h("span", { key: "n", className: "dshd-local-name", "data-dshd-provider": id }, srv.displayName || id),
+              h("span", { key: "s", className: "dshd-local-sub" },
+                srv.up
+                  ? (srv.models.length === 0
+                      ? "Running — no models installed yet"
+                      : `${srv.models.length} model${srv.models.length === 1 ? "" : "s"}: ${srv.models.slice(0, 3).join(", ")}${srv.models.length > 3 ? "…" : ""}`)
+                  : `Not running · ${srv.hint || "start it and it appears here"}`)))));
     }
 
     function ModelCatalogSection() {
@@ -1064,19 +1333,483 @@ window.__ModuleLoader__.load({
       }, []);
       const entries = Object.entries(catalog || {}).filter(([, row]) => row && row.status !== "disconnected");
       return h("div", { className: "dshd-local" },
-        h("h3", null, "Model updates"),
+        h("div", { className: "dshd-local-head" },
+          h("h3", null, "Model updates"),
+          h("button", { type: "button", className: "dshd-btn dshd-btn-outline", disabled: busy,
+            onClick: () => { void request.current?.(true); } }, busy ? "Refreshing…" : "Refresh models")),
         h("p", { className: "dshd-local-intro" },
           "Connected accounts check for new models automatically every 15 minutes. Your selected model stays the same."),
-        h("button", { type: "button", className: "dshd-btn", disabled: busy,
-          onClick: () => { void request.current?.(true); } }, busy ? "Refreshing…" : "Refresh models"),
         error ? h("p", { role: "alert", className: "dshd-local-intro" }, error) : null,
-        entries.map(([id, row]) => h("div", { key: id, className: "dshd-local-row" },
-          h("span", { className: "dshd-local-name", "data-dshd-provider": id }, row.name || id),
-          h("span", { className: "dshd-local-sub", title: row.checkedAt ? new Date(row.checkedAt).toLocaleString() : undefined },
-            row.status === "fresh" ? `${row.count} models · Updated ${new Date(row.checkedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
-              : row.status === "custom" ? "Custom model settings · Automatic changes paused"
-                : row.status === "stale" ? row.error || "Using the previous model list"
-                  : row.status === "refreshing" ? "Checking provider…" : "Waiting for account…"))),
+        entries.length > 0
+          ? h("div", { className: "dshd-local-grid" },
+              entries.map(([id, row]) => h("div", { key: id, className: "dshd-local-row" },
+                h("span", { className: "dshd-local-name", "data-dshd-provider": id }, row.name || id),
+                h("span", { className: "dshd-local-sub", title: row.checkedAt ? new Date(row.checkedAt).toLocaleString() : undefined },
+                  row.status === "fresh" ? `${row.count} models · Updated ${new Date(row.checkedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+                    : row.status === "custom" ? "Custom model settings · Automatic changes paused"
+                      : row.status === "stale" ? row.error || "Using the previous model list"
+                        : row.status === "refreshing" ? "Checking provider…" : "Waiting for account…"))))
+          : null,
+      );
+    }
+
+    const GATEWAY_PRESETS = [
+      { label: "vLLM (:8000)", name: "vLLM Local", url: "http://127.0.0.1:8000/v1" },
+      { label: "Llama.cpp (:8080)", name: "Llama.cpp Server", url: "http://127.0.0.1:8080/v1" },
+      { label: "LiteLLM (:4000)", name: "LiteLLM Proxy", url: "http://127.0.0.1:4000/v1" },
+      { label: "Jan (:1337)", name: "Jan Local", url: "http://127.0.0.1:1337/v1" },
+      { label: "SGLang (:30000)", name: "SGLang Server", url: "http://127.0.0.1:30000/v1" },
+    ];
+
+    function DirectProviderCard({ item, onMutate }) {
+      const [editing, setEditing] = useState(false);
+      const [apiKey, setApiKey] = useState("");
+      const [busy, setBusy] = useState(false);
+      const [armed, setArmed] = useState(false);
+      const [error, setError] = useState(null);
+      const armTimer = useRef(null);
+
+      useEffect(() => () => clearTimeout(armTimer.current), []);
+
+      const run = async (payload) => {
+        if (busy) return;
+        setBusy(true);
+        setError(null);
+        const res = await post("direct", payload);
+        setBusy(false);
+        if (!res.ok) {
+          setError(res.error || `Could not update ${item.name}.`);
+          return;
+        }
+        onMutate(res);
+        setEditing(false);
+        setApiKey("");
+        setArmed(false);
+      };
+
+      return h(
+        "div",
+        { className: "dshd-direct-card", "data-dshd-direct": item.id },
+        h(
+          "div",
+          { key: "top", className: "dshd-direct-top" },
+          h(
+            "div",
+            { className: "dshd-card-ident" },
+            h(
+              "span",
+              { className: "dshd-card-mark", style: { width: "28px", height: "28px" } },
+              h(ProviderMark, { provider: item.id, size: 16 }),
+            ),
+            h(
+              "div",
+              { className: "dshd-card-title" },
+              h("span", { className: "dshd-card-name", style: { fontSize: "13px", lineHeight: "19px" } }, item.name),
+              h("span", { className: "dshd-card-sub", style: { fontSize: "11px", lineHeight: "16px" } }, item.sub),
+            ),
+          ),
+          item.configured
+            ? h("span", { className: "dshd-badge" }, "Connected")
+            : item.envAvailable
+              ? h("span", { className: "dshd-env-badge", title: `${item.envVar} detected in environment` }, `$${item.envVar}`)
+              : null,
+        ),
+        error ? h("div", { key: "err", className: "dshd-err", role: "alert" }, error) : null,
+        editing
+          ? h(
+              "form",
+              {
+                key: "form",
+                className: "dshd-prompt",
+                onSubmit: (e) => {
+                  e.preventDefault();
+                  if (!busy && apiKey.trim()) void run({ action: "connect", provider: item.id, apiKey: apiKey.trim() });
+                },
+              },
+              h("input", {
+                className: "dshd-input",
+                style: { flex: "1 1 auto" },
+                type: "password",
+                placeholder: item.placeholder || "API key…",
+                "aria-label": `${item.name} API key`,
+                value: apiKey,
+                disabled: busy,
+                onChange: (e) => setApiKey(e.target.value),
+              }),
+              h(
+                "div",
+                { className: "dshd-direct-foot" },
+                item.keyUrl
+                  ? h(
+                      "a",
+                      { className: "dshd-link", style: { fontSize: "11px" }, href: item.keyUrl, target: "_blank", rel: "noreferrer noopener" },
+                      "Get API key ↗",
+                    )
+                  : h("span"),
+                h(
+                  "div",
+                  { className: "dshd-row", style: { gap: "6px" } },
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      className: "dshd-btn dshd-btn-quiet dshd-copy",
+                      disabled: busy,
+                      onClick: () => { setEditing(false); setError(null); setApiKey(""); },
+                    },
+                    "Cancel",
+                  ),
+                  h(
+                    "button",
+                    {
+                      type: "submit",
+                      className: "dshd-btn dshd-btn-primary dshd-copy",
+                      disabled: busy || !apiKey.trim(),
+                    },
+                    busy ? "Saving…" : "Connect",
+                  ),
+                ),
+              ),
+            )
+          : h(
+              "div",
+              { key: "foot", className: "dshd-direct-foot" },
+              item.configured
+                ? [
+                    h(
+                      "span",
+                      { key: "cnt", className: "dshd-hint", style: { fontSize: "11px" } },
+                      item.modelCount > 0 ? `${item.modelCount} models active` : "Active in picker",
+                    ),
+                    h(
+                      "button",
+                      {
+                        key: "out",
+                        type: "button",
+                        disabled: busy,
+                        className: "dshd-btn dshd-btn-signout dshd-copy" + (armed ? " dshd-btn-armed" : ""),
+                        onBlur: () => { clearTimeout(armTimer.current); setArmed(false); },
+                        onClick: () => {
+                          if (busy) return;
+                          if (!armed) {
+                            setArmed(true);
+                            armTimer.current = setTimeout(() => setArmed(false), ARM_MS);
+                            return;
+                          }
+                          clearTimeout(armTimer.current);
+                          setArmed(false);
+                          void run({ action: "disconnect", provider: item.id });
+                        },
+                      },
+                      busy ? "Removing…" : armed ? "Confirm" : "Disconnect",
+                    ),
+                  ]
+                : item.envAvailable
+                  ? [
+                      h(
+                        "button",
+                        {
+                          key: "env",
+                          type: "button",
+                          className: "dshd-btn dshd-btn-primary dshd-copy",
+                          disabled: busy,
+                          onClick: () => void run({ action: "connect", provider: item.id, useEnv: true }),
+                        },
+                        busy ? "Connecting…" : "Use env key",
+                      ),
+                      h(
+                        "button",
+                        {
+                          key: "manual",
+                          type: "button",
+                          className: "dshd-btn dshd-btn-outline dshd-copy",
+                          disabled: busy,
+                          onClick: () => setEditing(true),
+                        },
+                        "Paste key",
+                      ),
+                    ]
+                  : h(
+                      "button",
+                      {
+                        key: "add",
+                        type: "button",
+                        className: "dshd-btn dshd-btn-outline dshd-copy",
+                        disabled: busy,
+                        onClick: () => setEditing(true),
+                      },
+                      "Connect API key",
+                    ),
+            ),
+      );
+    }
+
+    function CustomGatewayCard({ gateway, onMutate }) {
+      const configured = Boolean(gateway?.configured);
+      const [editing, setEditing] = useState(false);
+      const [displayName, setDisplayName] = useState(gateway?.displayName || "Custom Gateway");
+      const [baseURL, setBaseURL] = useState(gateway?.baseURL || "");
+      const [apiKey, setApiKey] = useState("");
+      const [models, setModels] = useState((gateway?.models || []).join(", "));
+      const [busy, setBusy] = useState(false);
+      const [armed, setArmed] = useState(false);
+      const [error, setError] = useState(null);
+      const armTimer = useRef(null);
+
+      useEffect(() => () => clearTimeout(armTimer.current), []);
+
+      const applyPreset = (preset) => {
+        setEditing(true);
+        setDisplayName(preset.name);
+        setBaseURL(preset.url);
+        setError(null);
+      };
+
+      const run = async (payload) => {
+        if (busy) return;
+        setBusy(true);
+        setError(null);
+        const res = await post("direct", payload);
+        setBusy(false);
+        if (!res.ok) {
+          setError(res.error || "Could not configure custom gateway.");
+          return;
+        }
+        onMutate(res);
+        setEditing(false);
+        setApiKey("");
+        setArmed(false);
+      };
+
+      return h(
+        "div",
+        { className: "dshd-gw-card", "data-dshd-gateway": "custom-gateway" },
+        h(
+          "div",
+          { key: "head", className: "dshd-direct-top" },
+          h(
+            "div",
+            { className: "dshd-card-ident" },
+            h(
+              "span",
+              { className: "dshd-card-mark" },
+              h(ProviderMark, { provider: "custom-gateway", size: 20 }),
+            ),
+            h(
+              "div",
+              { className: "dshd-card-title" },
+              h("span", { className: "dshd-card-name" }, configured ? gateway.displayName : "Custom OpenAI-Compatible Gateway"),
+              h(
+                "span",
+                { className: "dshd-card-sub" },
+                configured
+                  ? `${gateway.baseURL} · ${gateway.modelCount || 0} model${gateway.modelCount === 1 ? "" : "s"} (${(gateway.models || []).slice(0, 4).join(", ")})`
+                  : "Connect vLLM, Llama.cpp, LiteLLM, SGLang, Jan, or any local/cloud /v1 endpoint",
+              ),
+            ),
+          ),
+          configured ? h("span", { className: "dshd-badge" }, "Connected") : null,
+        ),
+        error ? h("div", { key: "err", className: "dshd-err", role: "alert" }, error) : null,
+        !configured || editing
+          ? h(
+              "div",
+              { key: "presets", className: "dshd-gw-presets" },
+              h("span", { className: "dshd-hint", style: { fontSize: "11px", marginRight: "4px" } }, "Quick presets:"),
+              GATEWAY_PRESETS.map((preset) =>
+                h(
+                  "button",
+                  {
+                    key: preset.label,
+                    type: "button",
+                    className: "dshd-gw-pill",
+                    onClick: () => applyPreset(preset),
+                  },
+                  preset.label,
+                ),
+              ),
+            )
+          : null,
+        editing
+          ? h(
+              "form",
+              {
+                key: "form",
+                className: "dshd-prompt",
+                onSubmit: (e) => {
+                  e.preventDefault();
+                  if (!busy && baseURL.trim()) {
+                    void run({
+                      action: "connect-gateway",
+                      displayName: displayName.trim() || "Custom Gateway",
+                      baseURL: baseURL.trim(),
+                      apiKey: apiKey.trim(),
+                      models,
+                    });
+                  }
+                },
+              },
+              h(
+                "div",
+                { className: "dshd-gw-fields" },
+                h("input", {
+                  className: "dshd-input",
+                  type: "text",
+                  placeholder: "Gateway name (e.g. vLLM Local)",
+                  "aria-label": "Gateway display name",
+                  value: displayName,
+                  disabled: busy,
+                  onChange: (e) => setDisplayName(e.target.value),
+                }),
+                h("input", {
+                  className: "dshd-input",
+                  type: "text",
+                  placeholder: "http://127.0.0.1:8000/v1",
+                  "aria-label": "Gateway base URL",
+                  value: baseURL,
+                  disabled: busy,
+                  onChange: (e) => setBaseURL(e.target.value),
+                }),
+                h("input", {
+                  className: "dshd-input",
+                  type: "password",
+                  placeholder: "API key (optional for local servers)",
+                  "aria-label": "Gateway API key",
+                  value: apiKey,
+                  disabled: busy,
+                  onChange: (e) => setApiKey(e.target.value),
+                }),
+                h("input", {
+                  className: "dshd-input",
+                  type: "text",
+                  placeholder: "Model IDs (auto-discovered from /models if blank)",
+                  "aria-label": "Gateway model IDs",
+                  value: models,
+                  disabled: busy,
+                  onChange: (e) => setModels(e.target.value),
+                }),
+              ),
+              h(
+                "div",
+                { className: "dshd-direct-foot" },
+                h("span", { className: "dshd-hint" }, "Probes /models automatically and merges any model IDs you list."),
+                h(
+                  "div",
+                  { className: "dshd-row", style: { gap: "8px" } },
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      className: "dshd-btn dshd-btn-quiet dshd-copy",
+                      disabled: busy,
+                      onClick: () => { setEditing(false); setError(null); },
+                    },
+                    "Cancel",
+                  ),
+                  h(
+                    "button",
+                    {
+                      type: "submit",
+                      className: "dshd-btn dshd-btn-primary dshd-copy",
+                      disabled: busy || !baseURL.trim(),
+                    },
+                    busy ? "Probing & saving…" : "Connect gateway",
+                  ),
+                ),
+              ),
+            )
+          : h(
+              "div",
+              { key: "foot", className: "dshd-direct-foot" },
+              h(
+                "span",
+                { className: "dshd-hint" },
+                configured
+                  ? "Routes requests over OpenAI-compatible Chat Completions."
+                  : "Auto-discovers models from any /v1/models endpoint or accepts custom model IDs.",
+              ),
+              h(
+                "div",
+                { className: "dshd-row", style: { gap: "8px" } },
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    className: "dshd-btn dshd-btn-outline dshd-copy",
+                    disabled: busy,
+                    onClick: () => {
+                      setDisplayName(gateway?.displayName || "Custom Gateway");
+                      setBaseURL(gateway?.baseURL || "http://127.0.0.1:8000/v1");
+                      setModels((gateway?.models || []).join(", "));
+                      setEditing(true);
+                    },
+                  },
+                  configured ? "Edit gateway" : "Configure gateway",
+                ),
+                configured
+                  ? h(
+                      "button",
+                      {
+                        type: "button",
+                        disabled: busy,
+                        className: "dshd-btn dshd-btn-signout dshd-copy" + (armed ? " dshd-btn-armed" : ""),
+                        onBlur: () => { clearTimeout(armTimer.current); setArmed(false); },
+                        onClick: () => {
+                          if (busy) return;
+                          if (!armed) {
+                            setArmed(true);
+                            armTimer.current = setTimeout(() => setArmed(false), ARM_MS);
+                            return;
+                          }
+                          clearTimeout(armTimer.current);
+                          setArmed(false);
+                          void run({ action: "disconnect-gateway" });
+                        },
+                      },
+                      busy ? "Removing…" : armed ? "Confirm" : "Disconnect",
+                    )
+                  : null,
+              ),
+            ),
+      );
+    }
+
+    function DirectProvidersSection() {
+      ensureLocalStyle();
+      const [direct, setDirect] = useState(null);
+      useEffect(() => {
+        let alive = true;
+        fetch("/dsh-auth/direct", { credentials: "same-origin" })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => { if (alive && d && Array.isArray(d.providers)) setDirect(d); })
+          .catch(() => {});
+        return () => { alive = false; };
+      }, []);
+      const providers = direct?.providers || [];
+      if (providers.length === 0 && !direct?.gateway) return null;
+      return h(
+        "div",
+        { className: "dshd-local" },
+        h(
+          "div",
+          { key: "h", className: "dshd-local-head" },
+          h("h3", null, "Direct API Keys & Custom Gateways"),
+        ),
+        h(
+          "p",
+          { key: "p", className: "dshd-local-intro" },
+          "Bring your own API key for any frontier or open-weights provider, connect detected environment variables in one click, or attach any OpenAI-compatible inference server.",
+        ),
+        providers.length > 0
+          ? h(
+              "div",
+              { key: "grid", className: "dshd-direct-grid" },
+              providers.map((item) =>
+                h(DirectProviderCard, { key: item.id, item, onMutate: setDirect }),
+              ),
+            )
+          : null,
+        h(CustomGatewayCard, { key: "gw", gateway: direct?.gateway, onMutate: setDirect }),
       );
     }
 
@@ -1117,7 +1850,9 @@ window.__ModuleLoader__.load({
                     live: live[account.key],
                     outcome: outcomes[account.key],
                   }),
-                )),
+                ),
+                h(OpenCodeZenCard, { key: "opencode-zen" })),
+        h(DirectProvidersSection, { key: "direct" }),
         h(ModelCatalogSection, { key: "catalog" }),
         h(LocalModelsSection, { key: "local" }),
       );
@@ -1290,6 +2025,7 @@ window.__ModuleLoader__.load({
     }
 
     exports.AccountUsage = AccountUsage;
+    exports.DirectProvidersSection = DirectProvidersSection;
     exports.UsageBar = UsageBar;
     exports.quotaRows = quotaRows;
     exports.apply = apply;

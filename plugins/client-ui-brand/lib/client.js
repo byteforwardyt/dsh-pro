@@ -66,6 +66,18 @@ window.__ModuleLoader__.load({
       "[data-dshd-nav=\"computer\"]{--dshd-nav-icon:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7'%3E%3Cpath d='M3 3h18v13H3ZM8 21h8m-4-5v5'/%3E%3C/svg%3E\")}",
       "[data-dshd-nav=\"development\"]{--dshd-nav-icon:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7'%3E%3Cpath d='M4 4h16v16H4ZM7 8l4 4-4 4m6 0h4'/%3E%3C/svg%3E\")}",
       "[data-dshd-nav=\"phone\"]{--dshd-nav-icon:url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%23000%27%20stroke-width%3D%271.7%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%276%27%20y%3D%272.5%27%20width%3D%2712%27%20height%3D%2719%27%20rx%3D%273%27%2F%3E%3Cpath%20d%3D%27M10%2018h4%27%2F%3E%3C%2Fsvg%3E\")}",
+      ".dshd-cmdk-trigger{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:6px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer;-webkit-app-region:no-drag}",
+      ".dshd-cmdk-trigger:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}",
+      ".dshd-cmdk-trigger kbd{font:inherit;font-size:11px;color:var(--dsw-alias-label-tertiary)}",
+      "#dshd-cmdk-backdrop{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding-top:13vh;-webkit-app-region:no-drag}",
+      "#dshd-cmdk-dialog{width:min(560px,92vw);max-height:68vh;display:flex;flex-direction:column;border-radius:14px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);box-shadow:0 24px 64px rgba(0,0,0,.55);overflow:hidden;font:13px/1.45 -apple-system,BlinkMacSystemFont,sans-serif}",
+      "#dshd-cmdk-input{width:100%;border:0;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);padding:13px 16px;font:inherit;font-size:14px;outline:none}",
+      "#dshd-cmdk-list{overflow-y:auto;padding:8px;display:grid;gap:2px}",
+      ".dshd-cmdk-group{padding:6px 10px 3px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dsw-alias-label-tertiary)}",
+      ".dshd-cmdk-item{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;border-radius:8px;padding:8px 10px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}",
+      ".dshd-cmdk-item[data-active=\"true\"],.dshd-cmdk-item:hover{background:var(--dsw-alias-interactive-bg-hover)}",
+      ".dshd-cmdk-item small{font-size:11px;color:var(--dsw-alias-label-tertiary);font-variant-numeric:tabular-nums}",
+      ".dshd-cmdk-empty{padding:20px;text-align:center;color:var(--dsw-alias-label-tertiary)}",
     ].join("");
     const STYLE_ID = "dshd-brand-style";
     function ensureStyle() {
@@ -77,6 +89,7 @@ window.__ModuleLoader__.load({
       watchSettingsNav();
       exposeActions();
       installWindowTitle();
+      installCommandPalette();
     }
 
     function Mark({ size, className }) {
@@ -95,7 +108,11 @@ window.__ModuleLoader__.load({
     function HomeToolbar(props) {
       return h("div", { className: "dshd-home-toolbar", role: "toolbar", "aria-label": "Session toolbar" },
           h("span", null, "New session"),
-          h("div", { className: "dshd-home-toolbar-actions" }, props.renderSlot("desktop.home.actions", {})));
+          h("div", { className: "dshd-home-toolbar-actions" },
+            props.renderSlot("desktop.home.actions", {}),
+            h("button", { type: "button", className: "dshd-cmdk-trigger", title: "Command Palette (⌘K)", onClick: () => openCommandPalette() },
+              h("span", null, "Commands"),
+              h("kbd", null, "⌘K"))));
     }
 
     function HeroBrand(props) {
@@ -290,6 +307,217 @@ window.__ModuleLoader__.load({
       if (typeof window !== "undefined") window.__dshdTitleObserver = observer;
     }
 
+    function buildCommandItems() {
+      const actions = (typeof window !== "undefined" && window.__DSHD_ACTIONS__) || {};
+      const items = [
+        { group: "Workspace & Session", label: "New session", shortcut: "⌘N", run: () => actions.newSession && actions.newSession() },
+        { group: "Workspace & Session", label: "Focus message composer", shortcut: "⌘L", run: () => actions.focusComposer && actions.focusComposer() },
+      ];
+      const scModeBtn = typeof document !== "undefined" ? document.querySelector("button.sc-mode-button") : null;
+      if (scModeBtn) {
+        const active = scModeBtn.getAttribute("aria-pressed") === "true";
+        items.push({
+          group: "SuperCode Multi-Agent",
+          label: active ? "Switch to single-agent mode" : "Enable SuperCode multi-agent mode",
+          shortcut: "SuperCode",
+          run: () => scModeBtn.click(),
+        });
+      }
+      const scRecipient = typeof document !== "undefined" ? document.querySelector('select[aria-label="Message recipient"]') : null;
+      if (scRecipient) {
+        const setTarget = (val) => {
+          scRecipient.value = val;
+          scRecipient.dispatchEvent(new Event("change", { bubbles: true }));
+          const input = find("composer");
+          if (input && typeof input.focus === "function") input.focus();
+        };
+        items.push(
+          { group: "SuperCode Multi-Agent", label: "Message @team council (parallel perspectives)", shortcut: "@team", run: () => setTarget("team") },
+          { group: "SuperCode Multi-Agent", label: "Message @lead (plan & coordinate)", shortcut: "@lead", run: () => setTarget("lead") },
+        );
+      }
+      const scTasksBtn = typeof document !== "undefined" ? document.querySelector(".sc-header-controls > button") : null;
+      if (scTasksBtn) {
+        items.push({ group: "SuperCode Multi-Agent", label: "Toggle SuperCode Task Board", shortcut: "Tasks", run: () => scTasksBtn.click() });
+      }
+      const scAgentsBtn = typeof document !== "undefined" ? document.querySelector('button[aria-label="Models and agents"]') : null;
+      if (scAgentsBtn) {
+        items.push({ group: "SuperCode Multi-Agent", label: "Configure SuperCode models & team blueprints", shortcut: "Agents", run: () => scAgentsBtn.click() });
+      }
+      const scMixBtn = typeof document !== "undefined" ? [...document.querySelectorAll("button.sc-template-pill")].find(b => (b.textContent || "").includes("Mix providers")) : null;
+      if (scMixBtn && !scMixBtn.disabled) {
+        items.push({ group: "SuperCode Multi-Agent", label: "Mix connected providers across Lead, Builder & Reviewer", shortcut: "Mix", run: () => scMixBtn.click() });
+      }
+      const gitRefreshBtn = typeof document !== "undefined" ? document.querySelector('button[aria-label="Refresh Git"]') : null;
+      if (gitRefreshBtn) {
+        items.push({ group: "Git & Workspace", label: "Refresh Git repository status", shortcut: "Git", run: () => gitRefreshBtn.click() });
+      }
+      const browseFilesBtn = typeof document !== "undefined" ? document.querySelector(".dshd-inspector button.browse") : null;
+      if (browseFilesBtn) {
+        items.push({ group: "Git & Workspace", label: "Browse workspace files", shortcut: "Files", run: () => browseFilesBtn.click() });
+      }
+      items.push(
+        { group: "Views", label: "Switch to Code view", shortcut: "⌘1", run: () => actions.selectView && actions.selectView("chat") },
+        { group: "Views", label: "Switch to Trajectory view", shortcut: "⌘2", run: () => actions.selectView && actions.selectView("trajectory") },
+        { group: "Views", label: "Switch to Preview view", shortcut: "⌘3", run: () => actions.selectView && actions.selectView("preview") },
+        { group: "Views", label: "Switch to Files view", shortcut: "⌘4", run: () => actions.selectView && actions.selectView("files") },
+        { group: "Panels & Tools", label: "Toggle Integrated Terminal", shortcut: "⌃`", run: () => actions.toggleTerminal && actions.toggleTerminal() },
+        { group: "Panels & Tools", label: "Toggle Inspector Sidebar", shortcut: "⌘B", run: () => actions.toggleSidebar && actions.toggleSidebar() },
+        { group: "Panels & Tools", label: "Open Session Log", shortcut: "⇧⌘L", run: () => actions.openSessionLog && actions.openSessionLog() },
+      );
+      for (const [label, rowLabel] of [
+        ["Open Connected accounts hub", "Connected accounts"],
+        ["Open Plugins hub", "Plugins"],
+        ["Open Scheduled tasks hub", "Scheduled"],
+        ["Open Pull requests hub", "Pull requests"],
+      ]) {
+        items.push({
+          group: "Navigation & Hub",
+          label,
+          shortcut: "Hub",
+          run: () => {
+            const rows = document.querySelectorAll('[class~="hHd-Xa_panelRow"]');
+            for (const row of rows) {
+              if ((row.textContent || "").trim() === rowLabel) {
+                row.click();
+                return;
+              }
+            }
+          },
+        });
+      }
+      items.push(
+        { group: "Settings", label: "Open Settings", shortcut: "⌘,", run: () => actions.openSettings && actions.openSettings() },
+      );
+      for (const [label, navKey] of [
+        ["General", "general"],
+        ["Accounts & Direct API Hub", "accounts"],
+        ["Workspaces", "workspaces"],
+        ["Usage & Quotas", "usage"],
+        ["Phone Access", "phone"],
+        ["Computer use", "computer"],
+        ["Development setup", "development"],
+        ["Plugins & Capabilities", "plugins"],
+        ["Models", "models"],
+        ["Model connections (advanced)", "model-connections"],
+        ["Advanced (Agent presets)", "agent-presets"],
+        ["About DSH PRO", "about"],
+      ]) {
+        items.push({
+          group: "Settings",
+          label: "Settings → " + label,
+          shortcut: "Settings",
+          run: () => {
+            if (actions.openSettings) actions.openSettings();
+            setTimeout(() => {
+              const cell = document.querySelector('[data-dshd-nav="' + navKey + '"]');
+              if (cell) cell.click();
+            }, 60);
+          },
+        });
+      }
+      return items;
+    }
+
+    function openCommandPalette() {
+      if (typeof document === "undefined" || !document.body) return false;
+      const existing = document.getElementById("dshd-cmdk-backdrop");
+      if (existing) { existing.remove(); return true; }
+      const backdrop = document.createElement("div");
+      backdrop.id = "dshd-cmdk-backdrop";
+      const dialog = document.createElement("div");
+      dialog.id = "dshd-cmdk-dialog";
+      dialog.setAttribute("role", "dialog");
+      dialog.setAttribute("aria-label", "Command Palette");
+      const input = document.createElement("input");
+      input.id = "dshd-cmdk-input";
+      input.type = "text";
+      input.placeholder = "Type a command, view, Git action, or SuperCode workflow…";
+      const list = document.createElement("div");
+      list.id = "dshd-cmdk-list";
+      const footer = document.createElement("div");
+      footer.style.cssText = "padding:7px 14px;border-top:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-tertiary);font-size:11px;display:flex;justify-content:space-between";
+      footer.textContent = "↑↓ Navigate · ↵ Run · Esc Close";
+      dialog.appendChild(input);
+      dialog.appendChild(list);
+      dialog.appendChild(footer);
+      backdrop.appendChild(dialog);
+
+      const allItems = buildCommandItems();
+      let filtered = allItems.slice();
+      let activeIndex = 0;
+      const close = () => backdrop.remove();
+
+      const renderList = () => {
+        list.textContent = "";
+        if (!filtered.length) {
+          const empty = document.createElement("div");
+          empty.className = "dshd-cmdk-empty";
+          empty.textContent = "No matching commands";
+          list.appendChild(empty);
+          return;
+        }
+        let lastGroup = "";
+        filtered.forEach((item, idx) => {
+          if (item.group !== lastGroup) {
+            lastGroup = item.group;
+            const grp = document.createElement("div");
+            grp.className = "dshd-cmdk-group";
+            grp.textContent = item.group;
+            list.appendChild(grp);
+          }
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "dshd-cmdk-item";
+          btn.setAttribute("data-active", idx === activeIndex ? "true" : "false");
+          const span = document.createElement("span");
+          span.textContent = item.label;
+          const kbd = document.createElement("small");
+          kbd.textContent = item.shortcut || "";
+          btn.appendChild(span);
+          btn.appendChild(kbd);
+          btn.addEventListener("mouseenter", () => {
+            activeIndex = idx;
+            [...list.querySelectorAll(".dshd-cmdk-item")].forEach((el, i) => el.setAttribute("data-active", i === activeIndex ? "true" : "false"));
+          });
+          btn.addEventListener("click", () => { close(); item.run(); });
+          list.appendChild(btn);
+        });
+        const activeEl = list.querySelector('.dshd-cmdk-item[data-active="true"]');
+        if (activeEl && typeof activeEl.scrollIntoView === "function") activeEl.scrollIntoView({ block: "nearest" });
+      };
+
+      input.addEventListener("input", () => {
+        const q = input.value.trim().toLowerCase();
+        filtered = !q ? allItems.slice() : allItems.filter(item => (item.label + " " + item.group + " " + (item.shortcut || "")).toLowerCase().includes(q));
+        activeIndex = 0;
+        renderList();
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") { e.preventDefault(); close(); }
+        else if (e.key === "ArrowDown") { e.preventDefault(); if (filtered.length) { activeIndex = (activeIndex + 1) % filtered.length; renderList(); } }
+        else if (e.key === "ArrowUp") { e.preventDefault(); if (filtered.length) { activeIndex = (activeIndex - 1 + filtered.length) % filtered.length; renderList(); } }
+        else if (e.key === "Enter") { e.preventDefault(); const pick = filtered[activeIndex]; if (pick) { close(); pick.run(); } }
+      });
+      backdrop.addEventListener("mousedown", (e) => { if (e.target === backdrop) close(); });
+
+      document.body.appendChild(backdrop);
+      renderList();
+      input.focus();
+      return true;
+    }
+
+    function installCommandPalette() {
+      if (typeof window === "undefined" || typeof window.addEventListener !== "function" || window.__dshdCmdKInstalled) return;
+      window.__dshdCmdKInstalled = true;
+      window.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && String(e.key).toLowerCase() === "k") {
+          e.preventDefault();
+          openCommandPalette();
+        }
+      });
+    }
+
     function exposeActions() {
       if (typeof window === "undefined") return;
       const press = (key) => {
@@ -337,6 +565,7 @@ window.__ModuleLoader__.load({
           if (typeof requestAnimationFrame === "function") requestAnimationFrame(focus);
           return true;
         },
+        openCommandPalette,
         /** See probeControls: the same function the menu enablement reads. */
         probe: probeControls,
       };

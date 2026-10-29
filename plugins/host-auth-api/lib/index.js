@@ -10,6 +10,8 @@ import { usageSummary } from './usage-history.js'
 import { ensureUsableDefaultModel } from './default-model.js'
 import { installLocalModels } from './local-models.js'
 import { installModelCatalog } from './model-catalog.js'
+import { installOpenCodeZen } from './opencode-zen.js'
+import { installDirectProviders } from './direct-providers.js'
 
 /**
  * HTTP surface for the authorization seam.
@@ -86,6 +88,8 @@ export function apply (ctx) {
   // Local model servers (Ollama, LM Studio): detect, declare, retract.
   const localModels = installLocalModels(ctx)
   const modelCatalog = installModelCatalog(ctx)
+  const opencodeZen = installOpenCodeZen(ctx)
+  const directProviders = installDirectProviders(ctx)
 
   // Passive usage readout: harvested from response headers on traffic the
   // harness already sends. Empty until the first model request flows.
@@ -330,6 +334,24 @@ export function apply (ctx) {
       return json(res, 200, modelCatalog.state)
     }
 
+    if (route === '/opencode' && req.method === 'GET') {
+      try {
+        return json(res, 200, await readForResponse(res, (signal) => opencodeZen.refreshState(signal)))
+      } catch (error) {
+        if (res.destroyed || lifetime.signal.aborted) return
+        return json(res, 200, opencodeZen.state)
+      }
+    }
+
+    if (route === '/direct' && req.method === 'GET') {
+      try {
+        return json(res, 200, await readForResponse(res, (signal) => directProviders.refreshState(signal)))
+      } catch {
+        if (res.destroyed || lifetime.signal.aborted) return
+        return json(res, 200, { providers: [], gateway: { configured: false } })
+      }
+    }
+
     if (req.method !== 'POST') return json(res, 405, { error: 'method-not-allowed' })
 
     // Mirrors the apiproxy's own cross-site fence: a browser will not send this
@@ -342,6 +364,43 @@ export function apply (ctx) {
     if (route === '/models/refresh' && body && typeof body === 'object') {
       await modelCatalog.refreshAll(true)
       return json(res, 200, modelCatalog.state)
+    }
+    if (route === '/opencode' && body && typeof body === 'object') {
+      try {
+        const action = String(body.action || 'connect')
+        const next = action === 'disconnect'
+          ? await opencodeZen.disconnect()
+          : action === 'refresh'
+            ? await opencodeZen.refreshModels()
+            : await opencodeZen.connect({ apiKey: body.apiKey, useCli: Boolean(body.useCli) })
+        return json(res, 200, next)
+      } catch (error) {
+        return json(res, 400, { error: error?.message || 'Could not update OpenCode Zen.' })
+      }
+    }
+    if (route === '/direct' && body && typeof body === 'object') {
+      try {
+        const action = String(body.action || 'connect')
+        const next = action === 'disconnect'
+          ? await directProviders.disconnectProvider({ provider: body.provider })
+          : action === 'connect-gateway'
+            ? await directProviders.connectGateway({
+              displayName: body.displayName,
+              baseURL: body.baseURL,
+              apiKey: body.apiKey,
+              models: body.models,
+            })
+            : action === 'disconnect-gateway'
+              ? await directProviders.disconnectGateway()
+              : await directProviders.connectProvider({
+                provider: body.provider,
+                apiKey: body.apiKey,
+                useEnv: Boolean(body.useEnv),
+              })
+        return json(res, 200, next)
+      } catch (error) {
+        return json(res, 400, { error: error?.message || 'Could not update provider.' })
+      }
     }
     if (!body || typeof body.provider !== 'string') {
       return json(res, 400, { error: 'provider is required' })
@@ -488,6 +547,8 @@ export function apply (ctx) {
     dispose()
     localModels.dispose()
     modelCatalog.dispose()
+    opencodeZen.dispose()
+    directProviders.dispose()
     if (usagePollTimer !== null) { clearInterval(usagePollTimer); usagePollTimer = null }
     // SSE responses never end on their own; teardown would hang without this —
     // and each one's heartbeat interval must be cleared or it outlives the plugin

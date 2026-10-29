@@ -428,3 +428,139 @@ test('previous runs retain a collapsed, read-only task board and original roster
   assert.ok(view.find(node => node.type === 'p').props.children[0].includes('old-model'));
   view.unmount();
 });
+
+test('task labels format human-readable numbers, dependency pills toggle cleanly, and checkpoint banner toggles task board', async () => {
+  const client = fixture(), saved = [];
+  const room = {
+    ...makeRoom(),
+    status: 'awaiting-approval',
+    tasks: [
+      { id: 'task-1', title: 'Audit endpoints', ownerId: 'lead', status: 'ready', criteria: 'List routes', dependencies: [] },
+      { id: 'task-2', title: 'Write patches', ownerId: 'builder', status: 'ready', criteria: 'Pass tests', dependencies: ['task-1'] },
+    ],
+  };
+  assert.equal(client.api.taskLabel(room, 'task-1'), '#1 · Audit endpoints');
+  assert.equal(client.api.taskLabel(room, 'task-2'), '#2 · Write patches');
+
+  const editor = await client.mount({ room, task: { ...room.tasks[1], dependencies: [] }, onCancel() {}, onSave: task => { saved.push(task); } }, client.api.TaskEditor).flush();
+  const pill = button(editor, '#1 · Audit endpoints');
+  assert.ok(pill);
+  assert.equal(pill.props['aria-pressed'], false);
+  pill.props.onClick(); await editor.flush();
+  assert.equal(button(editor, '#1 · Audit endpoints').props['aria-pressed'], true);
+  editor.tree.props.onSubmit({ preventDefault() {} });
+  assert.deepEqual(plain(saved[0].dependencies), ['task-1']);
+  editor.unmount();
+
+  let presentation = {};
+  const roomProps = () => ({
+    room,
+    nativePart: 'body',
+    data: bootstrap,
+    command: async () => true,
+    presentation,
+    onPresentation: next => { presentation = { ...presentation, ...next }; view.setProps(roomProps()); },
+  });
+  const view = await client.mount(roomProps(), client.api.Room).flush();
+  assert.equal(view.find(node => node.type === client.api.Board), undefined);
+  button(view, 'Review tasks (2)').props.onClick(); await view.flush();
+  assert.ok(view.find(node => node.type === client.api.Board));
+  button(view, 'Hide tasks').props.onClick(); await view.flush();
+  assert.equal(view.find(node => node.type === client.api.Board), undefined);
+  view.unmount();
+});
+
+test('team presets can be saved, applied, and deleted inside AgentPicker', async () => {
+  const client = fixture();
+  let latest;
+  const setup = await client.mount({ data: bootstrap, workspaceId: 'workspace', onDraft: value => { latest = value; } }, client.api.Setup).flush();
+  await setupModels(setup);
+  assert.equal(latest.ready, true);
+
+  field(setup, 'Preset name').props.onChange({ target: { value: 'Fast Pair' } }); await setup.flush();
+  button(setup, 'Save preset').props.onClick(); await setup.flush();
+  assert.equal(client.api.readPresets().length, 1);
+  assert.equal(client.api.readPresets()[0].name, 'Fast Pair');
+
+  const presetSelect = field(setup, 'Saved preset');
+  assert.ok(presetSelect);
+  presetSelect.props.onChange({ target: { value: 'fast-pair' } }); await setup.flush();
+  button(setup, 'Delete preset').props.onClick(); await setup.flush();
+  assert.equal(client.api.readPresets().length, 0);
+  setup.unmount();
+});
+
+test('multi-agent council timeline renders Leader badge, Sent to connectors, per-card collapse, live previews, and final synthesis', async () => {
+  const client = fixture();
+  const room = {
+    ...makeRoom(),
+    runId: 'council-run',
+    status: 'discussing',
+    chatOnly: true,
+    startedAt: Date.now() - 33000,
+    messages: [
+      { id: 'u1', runId: 'council-run', kind: 'user', text: 'Compare modular monoliths vs microservices.' },
+      { id: 'm1', runId: 'council-run', kind: 'agent', memberId: 'lead', recipient: 'builder', text: 'Builder, evaluate operational complexity.', createdAt: 1000 },
+      { id: 'm2', runId: 'council-run', kind: 'agent', memberId: 'builder', text: 'Modular monoliths avoid distributed tracing overhead initially.', createdAt: 2000 },
+    ],
+  };
+  const view = await client.mount({ room, onOpen() {} }, client.api.Messages).flush();
+  const toggle = () => view.find(node => node.props.className === 'sc-discussion-toggle');
+  assert.ok(toggle().props.children.includes('Agents thinking'));
+  assert.ok(view.find(node => node.props.className === 'sc-role-badge is-lead' && node.props.children.includes('Leader')));
+  assert.ok(view.find(node => node.props.className === 'sc-recipient' && node.props.children.some(child => child?.props?.children?.includes('Sent to Builder'))));
+
+  const cardToggle = view.find(node => node.props.className === 'sc-card-toggle');
+  assert.equal(cardToggle.props['aria-expanded'], true);
+  cardToggle.props.onClick(); await view.flush();
+  assert.equal(view.find(node => node.props.className === 'sc-card-toggle').props['aria-expanded'], false);
+  assert.ok(view.find(node => node.props.className === 'sc-bubble is-compact'));
+
+  toggle().props.onClick(); await view.flush();
+  const previews = view.find(node => node.props.className === 'sc-thought-previews');
+  assert.ok(previews);
+  previews.props.children[0].props.onClick(); await view.flush();
+  assert.equal(toggle().props['aria-expanded'], true);
+
+  const settled = {
+    ...room,
+    status: 'draft',
+    messages: [
+      ...room.messages,
+      { id: 'm3', runId: 'council-run', kind: 'agent', memberId: 'lead', text: 'Synthesized council answer: start with a modular monolith.', createdAt: 3000 },
+    ],
+  };
+  view.setProps({ room: settled, onOpen() {} }); await view.flush();
+  assert.ok(toggle().props.children.includes('Thoughts'));
+  assert.equal(toggle().props['aria-expanded'], false);
+  assert.ok(view.find(node => node.props.className === 'sc-message is-result'));
+  view.unmount();
+
+  const grouped = client.api.groupMessages([
+    { id: 'u1', runId: 'r1', kind: 'user', text: 'hi' },
+    { id: 'a1', runId: 'r1', kind: 'agent', memberId: 'lead', text: 'Hello!' },
+    { id: 'u2', runId: 'r1', kind: 'user', text: 'inspect repo' },
+    { id: 't1', runId: 'r1', kind: 'tool', memberId: 'lead', name: 'supercode_room_read', text: 'Tool completed.' },
+  ]);
+  assert.equal(grouped[1].activity.length, 0);
+  assert.equal(grouped[3].activityOnly, true);
+  assert.equal(grouped[3].activity.length, 1);
+});
+
+test('distributeModelsAcrossTeam mixes connected providers across Lead, Builder, and Reviewer', async () => {
+  const client = fixture();
+  const multiCatalog = {
+    catalog: [
+      { id: 'anthropic', label: 'Anthropic', models: [{ id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' }] },
+      { id: 'openai-codex', label: 'ChatGPT', models: [{ id: 'gpt-5.3-codex', name: 'GPT-5.3 Codex' }] },
+      { id: 'deepseek', label: 'DeepSeek', models: [{ id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro' }] },
+    ],
+  };
+  const mixed = client.api.distributeModelsAcrossTeam(client.api.initialMembers(), multiCatalog);
+  assert.equal(mixed[0].provider, 'anthropic');
+  assert.equal(mixed[0].model, 'claude-sonnet-4-6');
+  assert.equal(mixed[1].provider, 'openai-codex');
+  assert.equal(mixed[1].model, 'gpt-5.3-codex');
+  assert.equal(mixed[2].provider, 'deepseek');
+  assert.equal(mixed[2].model, 'deepseek-v4-pro');
+});

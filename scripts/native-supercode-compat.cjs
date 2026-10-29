@@ -24,14 +24,14 @@ function transform(source) {
     .replace(anchor, 'for (const [index, event] of events.entries()) events[index] = adoptSessionEvent(normalizeLegacySuperCodeEvent(event));')
 }
 function applyPackage(pkg) {
-  if (JSON.parse(fs.readFileSync(path.join(pkg, 'package.json'))).version !== '0.2.0-rc.2') throw Error('Review SuperCode persistence compatibility for this upstream version.')
+  if (JSON.parse(fs.readFileSync(path.join(pkg, 'package.json'))).version !== '0.2.1-rc.4') throw Error('Review SuperCode persistence compatibility for this upstream version.')
   const file = path.join(pkg, 'lib/index.js'), before = fs.readFileSync(file, 'utf8'), after = transform(before)
   if (before !== after) { fs.writeFileSync(file + '.dsh-stage', after); fs.renameSync(file + '.dsh-stage', file) }
 }
 function apply(harness) { applyPackage(path.join(harness, 'node_modules/@deepseek-ai/dsh-session-persistence')) }
 function prepareDevelopment(root) {
   const store = path.join(root, 'node_modules/.pnpm')
-  const entry = fs.readdirSync(store).find(name => name.startsWith('@deepseek-ai+dsh-session-persistence@0.2.0-rc.2'))
+  const entry = fs.readdirSync(store).find(name => name.startsWith('@deepseek-ai+dsh-session-persistence@0.2.1-rc.4'))
   if (!entry) throw Error('Install the pinned session persistence package first.')
   applyPackage(path.join(store, entry, 'node_modules/@deepseek-ai/dsh-session-persistence'))
 }

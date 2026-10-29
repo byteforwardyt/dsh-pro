@@ -67,7 +67,7 @@ test('upstream still renders the tab strip the way selectView indexes it', () =>
   // registered view, and it renders them in slot order. A bump that regroups or
   // reorders them remaps every accelerator with no error to notice.
   const bundle = conversationBundle();
-  assert.match(bundle, /className: ConversationRoot_module_css_default\.tabs,\s*role: "tablist",\s*"data-conversation-tabs": "",\s*children: tabs\.map\(\(viewTab\) =>/,
+  assert.match(bundle, /className: ConversationRoot_module_css_default\.(?:tabs|viewTabs),\s*role: "tablist",\s*"data-conversation-tabs": "",\s*children: (?:tabs|visibleTabs)\.map\(\(viewTab\) =>/,
     'the conversation tab strip changed shape: re-read it before trusting the View menu');
   assert.match(bundle, /jsx\)\("button", \{\s*type: "button",\s*role: "tab",/,
     'view tabs are no longer role="tab" buttons, so the strip lookup finds nothing');

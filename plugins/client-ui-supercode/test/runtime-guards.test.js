@@ -56,6 +56,8 @@ test('conversation grants deny even read-only workspace tools without rewriting 
   for (const name of ['read', 'read_image', 'glob', 'grep', 'bash', 'run_code', 'web_search', 'mcp__files__read', 'supercode_task', 'supercode_finish']) {
     await assert.rejects(f.tool(lead, name, () => assert.fail('Workspace or task access ran')), /conversation-only/)
   }
+  f.hooks.get('tools/result')(f.exec(lead, 'glob', {}), { isError: true })
+  assert.equal(f.events.length, 0)
   assert.equal(await f.tool(lead, 'supercode_post', async () => 'chat'), 'chat')
   const options = Object.freeze({ sessionId: lead.sessionId, tools: Object.freeze([{ name: 'read' }, { name: 'supercode_post' }]) })
   const stream = f.hooks.get('llm/stream')(options, async function* () { yield 'reply' })

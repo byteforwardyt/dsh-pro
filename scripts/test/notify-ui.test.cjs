@@ -496,3 +496,42 @@ test('the feed cap matches the host cap and waiting count is the real total', ()
   assert.equal(snap.sessions.length, mod.FEED_CAP);
   assert.equal(snap.waiting, mod.FEED_CAP + 5, 'the header count was capped with the rows');
 });
+
+test('SuperCode room status transitions drive plan-review, approval, completion notifications, Dock badge, and tray feed', () => {
+  let mod;
+  const desk = bridge();
+  const sessions = store(ready({sc1: row({displayTitle: 'SuperCode · Feature'})}));
+  loadClient('client-ui-notify', () => {}, {
+    context: {sessions: sessions.api, uiSession: sessions.uiSession, uiWorkspace: sessions.uiWorkspace},
+    desktopBridge: desk.api,
+    onModule (m) { mod = m; },
+  });
+  const scStore = mod.getSupercodeStore();
+  assert.ok(scStore);
+
+  // Team starts planning (even if non-lead members are the ones running).
+  scStore.publish({sc1: {roomId: 'room-1', status: 'planning', running: true, updatedAt: 10}});
+  assert.equal(desk.posts.length, 0);
+  assert.equal(desk.feeds.at(-1).sessions[0].running, true);
+
+  // Plan ready for user review -> posts 'plan-review' needs-input and sets Dock badge to 1.
+  scStore.publish({sc1: {roomId: 'room-1', status: 'awaiting-approval', running: false, pendingInteraction: 'plan-review', updatedAt: 20}});
+  assert.deepEqual(sent(desk), [
+    {kind: 'needs-input', reason: 'plan-review', sessionId: 'sc1', sessionTitle: 'SuperCode · Feature'},
+  ]);
+  assert.equal(desk.badges.at(-1), 1);
+
+  // Approved and running -> clears badge, keeps session in tray as running.
+  scStore.publish({sc1: {roomId: 'room-1', status: 'running', running: true, updatedAt: 30}});
+  assert.equal(desk.badges.at(-1), 0);
+
+  // Team completes -> posts 'turn-complete'.
+  scStore.publish({sc1: {roomId: 'room-1', status: 'completed', running: false, updatedAt: 40}});
+  assert.equal(desk.posts.length, 2);
+  assert.deepEqual({...desk.posts[1]}, {
+    kind: 'turn-complete',
+    reason: 'done',
+    sessionId: 'sc1',
+    sessionTitle: 'SuperCode · Feature',
+  });
+});

@@ -44,6 +44,7 @@ window.__ModuleLoader__.load({
       xai: "Grok",
       openrouter: "OpenRouter",
       "kimi-coding": "Kimi",
+      opencode: "OpenCode Zen",
       anthropic: "Claude",
       unknown: "Unknown",
     };
