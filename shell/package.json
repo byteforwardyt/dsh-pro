@@ -1,7 +1,7 @@
 {
   "name": "@dsh-desktop/shell",
   "private": true,
-  "version": "0.1.68",
+  "version": "0.1.69",
   "description": "DSH PRO — Enhanced Desktop Edition for DeepSeek Harness",
   "license": "MIT",
   "main": "src/main.cjs",
@@ -56,6 +56,7 @@
       "category": "public.app-category.developer-tools",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
+      "signIgnore": "LibreOfficeDev\\.app/Contents/Resources/|\\.(dbf|dbt|rdb|res|idx|dat|ttf|otf|woff|woff2|png|jpg|ico|icns)$",
       "entitlements": "../build/entitlements.mac.plist",
       "entitlementsInherit": "../build/entitlements.mac.inherit.plist",
       "extendInfo": {
