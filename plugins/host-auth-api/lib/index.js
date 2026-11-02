@@ -44,6 +44,7 @@ export function apply (ctx) {
   let stateRevision = 0
   let broadcastRead = null
   let accountUsageRefresh = null
+  let invalidateState = () => {}
   /** stream -> its heartbeat interval. Write-after-end returns false rather than
    *  throwing, so cleanup must be explicit — a catch-based prune never fires. */
   const streams = new Map()
@@ -88,6 +89,7 @@ export function apply (ctx) {
   // Local model servers (Ollama, LM Studio): detect, declare, retract.
   const localModels = installLocalModels(ctx, 20_000, {
     onDeclared: () => {
+      invalidateState()
       void ensureUsableDefaultModel(ctx).catch(() => {})
     },
   })
@@ -163,7 +165,7 @@ export function apply (ctx) {
       if (!signal.aborted && job.revision !== stateRevision) broadcastState()
     })
   }
-  const invalidateState = () => { stateRevision++; broadcastState() }
+  invalidateState = () => { stateRevision++; broadcastState() }
   const uninstallUsage = installUsageObserver(invalidateState)
 
   // A GET request's incoming body may finish while its response is still being

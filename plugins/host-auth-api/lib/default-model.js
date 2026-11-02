@@ -119,7 +119,7 @@ export async function ensureUsableDefaultModel (ctx) {
     ctx.logger?.warn?.(`default model: listing models for ${next} failed: ${error?.message}`)
     model = undefined
   }
-  if ((typeof model !== 'string' || !model) && !registered.includes(next)) {
+  if (typeof model !== 'string' || !model) {
     const profileModels = settings.section?.(settingsNamespace(LLM_NS))?.providers?.[next]?.models
     if (Array.isArray(profileModels) && profileModels.length > 0) {
       model = profileModels[0]?.id ?? profileModels[0]?.model

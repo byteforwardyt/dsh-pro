@@ -262,4 +262,108 @@ test('secondary environment variable aliases are correctly detected for Z.AI, NV
   assert.equal(state.gateway.detectedEnvURL, 'http://127.0.0.1:11434/v1')
 })
 
+test('gateway discovery supports string array, root array, v1 fallback resolution, and rejects hostless URLs', async (t) => {
+  const originalFetch = globalThis.fetch
+  t.after(() => { globalThis.fetch = originalFetch })
+
+  const routesHit = []
+  globalThis.fetch = async (url) => {
+    const s = String(url)
+    routesHit.push(s)
+    if (s === 'http://127.0.0.1:8000/models') {
+      return { ok: false, status: 404 }
+    }
+    if (s === 'http://127.0.0.1:8000/v1/models') {
+      return {
+        ok: true,
+        json: async () => ({ data: ['qwen2.5-coder:32b', 'llama3:8b'] }),
+      }
+    }
+    if (s === 'http://127.0.0.1:9000/models') {
+      return {
+        ok: true,
+        json: async () => ([{ id: 'array-root-model' }]),
+      }
+    }
+    return { ok: false }
+  }
+
+  const profiles = Object.create(null)
+  let revision = 0
+  const settings = {
+    configuration () { return [{ entry: { options: { id: 'llm-pi-ai' } }, override: this.section() }] },
+    section: () => ({ providers: { ...profiles } }),
+    describe: () => [{ ns: 'llm-pi-ai', revision, user: { providers: { ...profiles } } }],
+    async mutate (_ns, ops) {
+      for (const op of ops) {
+        if (op.op === 'set') profiles[op.path[1]] = op.value
+        else delete profiles[op.path[1]]
+      }
+      revision++
+    },
+  }
+
+  const ctx = {
+    get: (name) => (name === 'settings' || name === 'configEditor' ? settings : undefined),
+    authorization: { list: () => [] },
+    credentials: {
+      describeRecord: async () => ({ configured: false }),
+      modifyRecord: async () => {},
+      deleteRecord: async () => {},
+    },
+  }
+
+  const direct = installDirectProviders(ctx)
+  t.after(() => direct.dispose())
+
+  // 1. Invalid URLs and non-http schemes fail cleanly
+  await assert.rejects(
+    direct.connectGateway({ baseURL: 'http://:8000/v1' }),
+    /Base URL must be a valid http:\/\/ or https:\/\/ URL/,
+  )
+  await assert.rejects(
+    direct.connectGateway({ baseURL: 'ftp://127.0.0.1:8000' }),
+    /Base URL must start with http:\/\/ or https:\/\//,
+  )
+
+  // 2. v1 fallback resolution from http://127.0.0.1:8000 (which 404s on /models but succeeds on /v1/models)
+  const state1 = await direct.connectGateway({
+    displayName: 'Local vLLM',
+    baseURL: 'http://127.0.0.1:8000///',
+  })
+  assert.equal(state1.gateway.configured, true)
+  assert.equal(state1.gateway.baseURL, 'http://127.0.0.1:8000/v1')
+  assert.deepEqual(state1.gateway.models, ['qwen2.5-coder:32b', 'llama3:8b'])
+  assert.equal(profiles['custom-gateway']?.baseURL, 'http://127.0.0.1:8000/v1')
+
+  // 3. Array-root models payload
+  const state2 = await direct.connectGateway({
+    displayName: 'Array Gateway',
+    baseURL: 'http://127.0.0.1:9000',
+  })
+  assert.equal(state2.gateway.configured, true)
+  assert.equal(state2.gateway.baseURL, 'http://127.0.0.1:9000')
+  assert.deepEqual(state2.gateway.models, ['array-root-model'])
+})
+
+test('trailing slashes in OPENAI_BASE_URL are stripped in detectedEnvURL', async (t) => {
+  const prev = process.env.OPENAI_BASE_URL
+  process.env.OPENAI_BASE_URL = 'http://192.168.1.150:8000/v1///'
+  t.after(() => {
+    if (prev === undefined) delete process.env.OPENAI_BASE_URL
+    else process.env.OPENAI_BASE_URL = prev
+  })
+
+  const ctx = {
+    get: () => undefined,
+    authorization: { list: () => [] },
+    credentials: { describeRecord: async () => ({ configured: false }) },
+  }
+  const direct = installDirectProviders(ctx)
+  t.after(() => direct.dispose())
+  const state = await direct.refreshState()
+  assert.equal(state.gateway.detectedEnvURL, 'http://192.168.1.150:8000/v1')
+})
+
+
 

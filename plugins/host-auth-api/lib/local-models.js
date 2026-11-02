@@ -264,6 +264,7 @@ export async function syncLocalModels (ctx, state, { signal } = {}) {
 export function installLocalModels (ctx, intervalMs = 20_000, { onDeclared } = {}) {
   const state = {}
   const running = new Set()
+  const declaredServers = new Set()
   const lifetime = new AbortController()
   const pass = async server => {
     if (running.has(server.id) || lifetime.signal.aborted) return
@@ -271,7 +272,12 @@ export function installLocalModels (ctx, intervalMs = 20_000, { onDeclared } = {
     try {
       await syncServer(ctx, state, server, lifetime.signal)
       if (state[server.id]?.sync === 'declared' && state[server.id]?.models?.length > 0) {
-        onDeclared?.(server.id)
+        if (!declaredServers.has(server.id)) {
+          declaredServers.add(server.id)
+          onDeclared?.(server.id)
+        }
+      } else {
+        declaredServers.delete(server.id)
       }
     }
     catch (error) { if (!lifetime.signal.aborted) ctx.logger?.warn?.(`local models: scan failed: ${error?.message}`) }

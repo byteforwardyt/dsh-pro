@@ -151,31 +151,55 @@ function enrichGatewayModel (id) {
   }
 }
 
-async function discoverGatewayModels (baseURL, apiKey, signal) {
-  const timeout = AbortSignal.timeout(4000)
-  const combined = signal ? AbortSignal.any([signal, timeout]) : timeout
+async function probeModelsAt (url, headers, signal) {
   try {
-    const headers = { Accept: 'application/json' }
-    if (apiKey) headers.Authorization = `Bearer ${apiKey}`
-    const url = `${baseURL.replace(/\/+$/, '')}/models`
-    const res = await fetch(url, { headers, signal: combined })
+    const res = await fetch(url, { headers, signal })
     if (res.ok) {
       const payload = await res.json()
-      const rows = Array.isArray(payload?.data)
-        ? payload.data
-        : Array.isArray(payload?.models)
-          ? payload.models
-          : []
+      const rows = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.models)
+            ? payload.models
+            : []
       return [...new Set(
         rows
-          .map((r) => (typeof r?.id === 'string' ? r.id.trim() : typeof r?.name === 'string' ? r.name.trim() : ''))
+          .map((r) => {
+            if (typeof r === 'string') return r.trim()
+            if (typeof r?.id === 'string') return r.id.trim()
+            if (typeof r?.name === 'string') return r.name.trim()
+            return ''
+          })
           .filter((id) => id && !/embed/i.test(id)),
       )]
     }
   } catch {
     signal?.throwIfAborted()
   }
-  return []
+  return null
+}
+
+async function discoverGatewayModels (baseURL, apiKey, signal) {
+  const timeout = AbortSignal.timeout(4000)
+  const combined = signal ? AbortSignal.any([signal, timeout]) : timeout
+  const clean = baseURL.replace(/\/+$/, '')
+  const headers = { Accept: 'application/json' }
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`
+
+  const directModels = await probeModelsAt(`${clean}/models`, headers, combined)
+  if (Array.isArray(directModels) && directModels.length > 0) {
+    return { models: directModels, resolvedBaseURL: clean }
+  }
+
+  if (!/\/v1$/i.test(clean)) {
+    const v1Models = await probeModelsAt(`${clean}/v1/models`, headers, combined)
+    if (Array.isArray(v1Models) && v1Models.length > 0) {
+      return { models: v1Models, resolvedBaseURL: `${clean}/v1` }
+    }
+  }
+
+  return { models: directModels || [], resolvedBaseURL: clean }
 }
 
 async function mutateGatewayProfile (ctx, next, signal) {
@@ -210,7 +234,8 @@ export function installDirectProviders (ctx) {
   const readGatewayState = () => {
     const settings = settingsAccess(ctx)
     const profile = settings?.section?.(settingsNamespace(NS))?.providers?.[CUSTOM_GATEWAY_ID]
-    const detectedEnvURL = (process.env.OPENAI_BASE_URL || process.env.OPENAI_API_BASE || '').trim() || undefined
+    const rawEnvURL = (process.env.OPENAI_BASE_URL || process.env.OPENAI_API_BASE || '').trim()
+    const detectedEnvURL = rawEnvURL ? rawEnvURL.replace(/\/+$/, '') : undefined
     if (!profile || typeof profile !== 'object') {
       return {
         configured: false,
@@ -308,6 +333,9 @@ export function installDirectProviders (ctx) {
     if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
       throw new Error('Base URL must start with http:// or https://.')
     }
+    if (!parsedUrl.hostname) {
+      throw new Error('Base URL must include a host name or IP address.')
+    }
 
     const cleanKey = typeof apiKey === 'string' ? apiKey.trim() : ''
     if (cleanKey && /[\u0000-\u0020\u007f]/.test(cleanKey)) {
@@ -320,7 +348,9 @@ export function installDirectProviders (ctx) {
         ? models.split(/[\n,]+/).map((m) => m.trim()).filter(Boolean)
         : []
 
-    const discoveredIds = await discoverGatewayModels(cleanUrl, cleanKey, signal)
+    const discovery = await discoverGatewayModels(cleanUrl, cleanKey, signal)
+    const discoveredIds = discovery.models || []
+    const effectiveBaseURL = discovery.resolvedBaseURL || cleanUrl
     const combinedIds = [...new Set([...manualIds, ...discoveredIds])]
     if (combinedIds.length === 0) {
       throw new Error('No models discovered at /models. Enter at least one model ID (for example qwen3-coder or llama-3.3-70b).')
@@ -341,7 +371,7 @@ export function installDirectProviders (ctx) {
     const profile = {
       displayName: (typeof displayName === 'string' && displayName.trim()) || 'Custom Gateway',
       api: 'openai-completions',
-      baseURL: cleanUrl,
+      baseURL: effectiveBaseURL,
       ...(cleanKey ? {} : { headers: { Authorization: 'Bearer local' } }),
       models: combinedIds.map(enrichGatewayModel),
     }

@@ -1021,6 +1021,7 @@ window.__ModuleLoader__.load({
       "border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.12));",
       "background:var(--dsw-alias-bg-module-platform,#2c2d2f);color:var(--dsw-alias-label-secondary,#cfd3d6)}",
       ".dshd-gw-pill:hover{border-color:var(--dsw-alias-border-l3,rgba(255,255,255,.22));color:var(--dsw-alias-label-primary,#f9fafb)}",
+      ".dshd-gw-pill-active{border-color:var(--dsw-brand,#4d82f3);color:var(--dsw-alias-label-primary,#f9fafb);background:var(--dsw-brand-tint,rgba(77,130,243,.15))}",
       ".dshd-gw-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}",
     ].join("");
     const LOCAL_STYLE_ID = "dshd-local-style";
@@ -1563,6 +1564,13 @@ window.__ModuleLoader__.load({
       const armTimer = useRef(null);
 
       useEffect(() => () => clearTimeout(armTimer.current), []);
+      useEffect(() => {
+        if (!editing) {
+          setDisplayName(gateway?.displayName || "Custom Gateway");
+          setBaseURL(gateway?.baseURL || gateway?.detectedEnvURL || "");
+          setModels((gateway?.models || []).join(", "));
+        }
+      }, [gateway?.displayName, gateway?.baseURL, gateway?.detectedEnvURL, gateway?.models, editing]);
 
       const applyPreset = (preset) => {
         setEditing(true);
@@ -1587,11 +1595,13 @@ window.__ModuleLoader__.load({
         setArmed(false);
       };
 
+      const envUrlClean = gateway?.detectedEnvURL ? gateway.detectedEnvURL.replace(/^https?:\/\//, "") : "";
+      const envUrlLabel = envUrlClean.length > 20 ? `${envUrlClean.slice(0, 18)}…` : envUrlClean;
       const presets = [
-        ...(gateway?.detectedEnvURL && gateway.detectedEnvURL !== baseURL
+        ...(gateway?.detectedEnvURL
           ? [
               {
-                label: `Detected ENV (${gateway.detectedEnvURL.replace(/^https?:\/\//, "").slice(0, 16)}…)`,
+                label: `Detected ENV (${envUrlLabel})`,
                 name: "Custom Gateway (ENV)",
                 url: gateway.detectedEnvURL,
               },
@@ -1641,7 +1651,7 @@ window.__ModuleLoader__.load({
                   {
                     key: preset.label,
                     type: "button",
-                    className: "dshd-gw-pill",
+                    className: "dshd-gw-pill" + (baseURL === preset.url ? " dshd-gw-pill-active" : ""),
                     onClick: () => applyPreset(preset),
                   },
                   preset.label,

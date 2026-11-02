@@ -122,3 +122,59 @@ test('installLocalModels calls onDeclared when a server is declared with models'
   assert.equal(profiles.ollama?.models?.[0]?.id, 'llama3:8b')
 })
 
+test('installLocalModels deduplicates onDeclared across repeated ticks and re-fires on recovery', async (t) => {
+  let serverUp = true
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    if (!serverUp) return { ok: false }
+    if (String(url).endsWith('/api/tags')) {
+      return { ok: true, json: async () => ({ models: [{ name: 'mistral:7b' }] }) }
+    }
+    if (String(url).endsWith('/api/show')) {
+      return { ok: true, json: async () => ({ model_info: { 'llama.context_length': 4096 } }) }
+    }
+    return { ok: false }
+  }
+  t.after(() => { globalThis.fetch = originalFetch })
+
+  const profiles = Object.create(null)
+  let revision = 0
+  const settings = {
+    configuration () { return [{ entry: { options: { id: 'llm-pi-ai' } }, override: this.section() }] },
+    section: () => ({ providers: { ...profiles } }),
+    describe: () => [{ ns: 'llm-pi-ai', revision, user: { providers: { ...profiles } } }],
+    async mutate (_ns, ops) {
+      for (const op of ops) {
+        if (op.op === 'set') profiles[op.path[1]] = op.value
+        else delete profiles[op.path[1]]
+      }
+      revision++
+    },
+  }
+  const ctx = {
+    get: (name) => (name === 'settings' ? settings : undefined),
+    logger: { info () {}, warn () {} },
+  }
+
+  const calls = []
+  // Short 15ms polling interval
+  const scanner = installLocalModels(ctx, 15, {
+    onDeclared: (id) => { calls.push(id) },
+  })
+  t.after(() => scanner.dispose())
+
+  // Allow 3 ticks while server remains UP
+  await new Promise((resolve) => setTimeout(resolve, 60))
+  assert.equal(calls.filter((id) => id === 'ollama').length, 1, 'should only fire once despite multiple ticks')
+
+  // Simulate server going down
+  serverUp = false
+  await new Promise((resolve) => setTimeout(resolve, 40))
+
+  // Simulate server coming back up
+  serverUp = true
+  await new Promise((resolve) => setTimeout(resolve, 60))
+  assert.equal(calls.filter((id) => id === 'ollama').length, 2, 'should re-fire when server recovers')
+})
+
+

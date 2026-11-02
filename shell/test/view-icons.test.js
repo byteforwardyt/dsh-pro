@@ -1,9 +1,10 @@
-import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import { test } from 'node:test'
-import vm from 'node:vm'
+const assert = require('node:assert/strict')
+const { readFileSync } = require('node:fs')
+const { test } = require('node:test')
+const vm = require('node:vm')
+const path = require('node:path')
 
-const source = readFileSync(new URL('../../plugins/client-ui-theme-holo/lib/client.js', import.meta.url), 'utf8')
+const source = readFileSync(path.join(__dirname, '../../plugins/client-ui-theme-holo/lib/client.js'), 'utf8')
 
 function mountTheme () {
   let plugin, listener
