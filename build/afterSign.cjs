@@ -76,7 +76,23 @@ exports.default = async function afterSign (context) {
     run('ditto', ['-c', '-k', '--keepParent', appPath, zipPath])
 
     console.log('  • afterSign: submitting to Apple (this waits on their queue)')
-    const out = run('xcrun', ['notarytool', 'submit', zipPath, ...authArgs(), '--wait'])
+    let out
+    let lastErr
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        out = run('xcrun', ['notarytool', 'submit', zipPath, ...authArgs(), '--wait'])
+        lastErr = null
+        break
+      } catch (err) {
+        lastErr = err
+        console.warn(`  • afterSign: submission attempt ${attempt}/3 hit an error: ${err.message || err}`)
+        if (attempt < 3) {
+          execFileSync('sleep', ['5'])
+        }
+      }
+    }
+    if (lastErr) throw lastErr
+
     const status = (/status:\s*(\w+)/.exec(out.split('Processing complete').pop() || out) || [])[1]
     if (status !== 'Accepted') {
       const id = (/id:\s*([0-9a-f-]{36})/.exec(out) || [])[1]

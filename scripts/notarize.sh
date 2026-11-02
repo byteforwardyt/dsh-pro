@@ -87,7 +87,16 @@ for dmg in "${dmgs[@]}"; do
   # --wait blocks until Apple returns a terminal status. Without it the command
   # returns immediately with a submission id and the staple below would fail
   # against a ticket that does not exist yet.
-  if ! xcrun notarytool submit "$dmg" "${AUTH[@]}" --wait 2>&1 | sed 's/^/   /'; then
+  submit_ok=0
+  for attempt in 1 2 3; do
+    if xcrun notarytool submit "$dmg" "${AUTH[@]}" --wait 2>&1 | sed 's/^/   /'; then
+      submit_ok=1
+      break
+    fi
+    echo "   submit attempt $attempt failed; retrying in 5s..."
+    sleep 5
+  done
+  if [ "$submit_ok" -ne 1 ]; then
     echo "   submit FAILED"
     fail=$((fail + 1))
     continue
