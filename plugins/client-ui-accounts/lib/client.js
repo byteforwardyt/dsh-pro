@@ -236,6 +236,12 @@ window.__ModuleLoader__.load({
       cerebras: "<path d=\"M12 2l8.66 5v10L12 22l-8.66-5V7L12 2zm0 2.31L5.34 8.15v7.7L12 19.69l6.66-3.84v-7.7L12 4.31zm0 3.69a4 4 0 1 1 0 8 4 4 0 0 1 0-8z\"></path>",
       mistral: "<path d=\"M3 4h4v4H3V4zm14 0h4v4h-4V4zM3 8h8v4H3V8zm10 0h8v4h-8V8zM3 12h4v8H3v-8zm7 0h4v4h-4v-4zm7 0h4v8h-4v-8z\"></path>",
       together: "<path d=\"M7 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm10 0a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM7 13a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm10 0a3 3 0 1 1 0 6 3 3 0 0 1 0-6z\"></path>",
+      fireworks: "<path d=\"M12 2l2.4 6.2L21 9.5l-5 4.3 1.5 6.4L12 16.8 6.5 20.2 8 13.8 3 9.5l6.6-1.3L12 2z\"></path>",
+      nvidia: "<path d=\"M3 6h9v3H6v6h6v3H3V6zm11 0h7v12h-7v-3h4V9h-4V6z\"></path>",
+      huggingface: "<path d=\"M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-3.5 7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm7 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM8 14.5h8a4 4 0 0 1-8 0z\"></path>",
+      minimax: "<path d=\"M3 18V6l4.5 6L12 6l4.5 6L21 6v12h-3v-6l-3 4-3-4-3 4-3-4v6H3z\"></path>",
+      zai: "<path d=\"M4 5h16v3L9.5 16H20v3H4v-3l10.5-8H4V5z\"></path>",
+      "vercel-ai-gateway": "<path d=\"M12 3l10 17.5H2L12 3z\"></path>",
       "custom-gateway": "<path d=\"M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6zm2 1v1h2V7H6zm0 6a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H6zm0 2h2v1H6v-1z\"></path>",
     };
 
@@ -1777,6 +1783,7 @@ window.__ModuleLoader__.load({
     function DirectProvidersSection() {
       ensureLocalStyle();
       const [direct, setDirect] = useState(null);
+      const [busyAll, setBusyAll] = useState(false);
       useEffect(() => {
         let alive = true;
         fetch("/dsh-auth/direct", { credentials: "same-origin" })
@@ -1787,6 +1794,21 @@ window.__ModuleLoader__.load({
       }, []);
       const providers = direct?.providers || [];
       if (providers.length === 0 && !direct?.gateway) return null;
+      const unconfiguredEnvCount = providers.filter((p) => p.envAvailable && !p.configured).length;
+      const connectAllEnv = async () => {
+        setBusyAll(true);
+        try {
+          const r = await fetch("/dsh-auth/direct", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ action: "connect-all-env" }),
+          });
+          const data = await r.json().catch(() => ({}));
+          if (r.ok && Array.isArray(data.providers)) setDirect(data);
+        } catch {}
+        setBusyAll(false);
+      };
       return h(
         "div",
         { className: "dshd-local" },
@@ -1794,6 +1816,20 @@ window.__ModuleLoader__.load({
           "div",
           { key: "h", className: "dshd-local-head" },
           h("h3", null, "Direct API Keys & Custom Gateways"),
+          unconfiguredEnvCount > 0
+            ? h(
+                "button",
+                {
+                  type: "button",
+                  className: "dshd-btn dshd-btn-primary dshd-copy",
+                  disabled: busyAll,
+                  onClick: () => void connectAllEnv(),
+                },
+                busyAll
+                  ? "Connecting…"
+                  : `Connect all detected ($ENV · ${unconfiguredEnvCount})`,
+              )
+            : null,
         ),
         h(
           "p",

@@ -72,6 +72,54 @@ export const DIRECT_PROVIDERS = [
     keyUrl: 'https://api.together.ai/settings/api-keys',
     placeholder: 'API key…',
   },
+  {
+    id: 'fireworks',
+    name: 'Fireworks AI',
+    sub: 'Fast open-weights & DeepSeek V4.1',
+    envVars: ['FIREWORKS_API_KEY'],
+    keyUrl: 'https://fireworks.ai/account/api-keys',
+    placeholder: 'fw_…',
+  },
+  {
+    id: 'nvidia',
+    name: 'NVIDIA NIM',
+    sub: 'NVIDIA GPU cloud inference catalog',
+    envVars: ['NVIDIA_API_KEY'],
+    keyUrl: 'https://build.nvidia.com',
+    placeholder: 'nvapi-…',
+  },
+  {
+    id: 'huggingface',
+    name: 'Hugging Face',
+    sub: '80+ open-weights inference models',
+    envVars: ['HF_TOKEN', 'HUGGINGFACE_API_KEY'],
+    keyUrl: 'https://huggingface.co/settings/tokens',
+    placeholder: 'hf_…',
+  },
+  {
+    id: 'minimax',
+    name: 'MiniMax',
+    sub: 'MiniMax M3 & M2.7 coding models',
+    envVars: ['MINIMAX_API_KEY'],
+    keyUrl: 'https://platform.minimaxi.com',
+    placeholder: 'API key…',
+  },
+  {
+    id: 'zai',
+    name: 'Z.AI (GLM)',
+    sub: 'GLM-5.2, GLM-5 Turbo & GLM-4.7',
+    envVars: ['ZAI_API_KEY'],
+    keyUrl: 'https://open.bigmodel.cn',
+    placeholder: 'API key…',
+  },
+  {
+    id: 'vercel-ai-gateway',
+    name: 'Vercel AI Gateway',
+    sub: 'Unified 300+ model enterprise gateway',
+    envVars: ['AI_GATEWAY_API_KEY'],
+    keyUrl: 'https://vercel.com/docs/ai-gateway',
+    placeholder: 'API key…',
+  },
 ]
 
 const BUNDLED_COUNTS = (() => {
@@ -308,10 +356,34 @@ export function installDirectProviders (ctx) {
     return refreshState(signal)
   }
 
+  const connectAllEnv = async (signal = lifetime.signal) => {
+    signal?.throwIfAborted()
+    const connected = []
+    for (const meta of DIRECT_PROVIDERS) {
+      const env = detectEnvKey(meta.envVars)
+      if (!env || /[\u0000-\u0020\u007f]/.test(env.key)) continue
+      const recKey = credentialKey(NS, meta.id)
+      const existing = await ctx.credentials?.describeRecord?.(recKey).catch(() => null)
+      if (existing?.configured) continue
+      if (typeof ctx.credentials?.modifyRecord === 'function') {
+        await ctx.credentials.modifyRecord(recKey, async () => ({
+          kind: 'api-key',
+          key: env.key,
+        }))
+      }
+      await ensureProviderDeclared(ctx, meta.id)
+      connected.push(meta.id)
+    }
+    await ensureUsableDefaultModel(ctx).catch(() => {})
+    const state = await refreshState(signal)
+    return { ...state, connected }
+  }
+
   return {
     refreshState,
     connectProvider,
     disconnectProvider,
+    connectAllEnv,
     connectGateway,
     disconnectGateway,
     dispose () { lifetime.abort() },

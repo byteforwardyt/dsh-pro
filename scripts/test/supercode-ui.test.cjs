@@ -547,14 +547,16 @@ test('multi-agent council timeline renders Leader badge, Sent to connectors, per
   assert.equal(grouped[3].activity.length, 1);
 });
 
-test('distributeModelsAcrossTeam mixes connected providers across Lead, Builder, and Reviewer', async () => {
+test('distributeModelsAcrossTeam mixes connected providers across Lead, Builder, and Reviewer in Setup and TeamEditor', async () => {
   const client = fixture();
   const multiCatalog = {
+    ...bootstrap,
     catalog: [
       { id: 'anthropic', label: 'Anthropic', models: [{ id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' }] },
       { id: 'openai-codex', label: 'ChatGPT', models: [{ id: 'gpt-5.3-codex', name: 'GPT-5.3 Codex' }] },
       { id: 'deepseek', label: 'DeepSeek', models: [{ id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro' }] },
     ],
+    selections: {},
   };
   const mixed = client.api.distributeModelsAcrossTeam(client.api.initialMembers(), multiCatalog);
   assert.equal(mixed[0].provider, 'anthropic');
@@ -563,4 +565,19 @@ test('distributeModelsAcrossTeam mixes connected providers across Lead, Builder,
   assert.equal(mixed[1].model, 'gpt-5.3-codex');
   assert.equal(mixed[2].provider, 'deepseek');
   assert.equal(mixed[2].model, 'deepseek-v4-pro');
+
+  let savedTeam;
+  const panel = await client.mount({
+    room: makeRoom(),
+    data: multiCatalog,
+    busy: false,
+    onSave: value => { savedTeam = value; },
+    onClose() {},
+  }, client.api.TeamEditor).flush();
+  button(panel, 'Mix providers').props.onClick();
+  await panel.flush();
+  button(panel, 'Save models').props.onClick();
+  assert.equal(savedTeam.members[0].provider, 'anthropic');
+  assert.equal(savedTeam.members[1].provider, 'openai-codex');
+  panel.unmount();
 });

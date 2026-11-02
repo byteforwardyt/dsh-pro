@@ -16,6 +16,9 @@ export function apply(ctx) {
   const home = process.env.DSH_HOME || path.join(os.homedir(), '.dsh')
   const store = new RoomStore(path.join(home, 'supercode', 'rooms'))
   let cachedCatalog = null, cachedCatalogAt = 0
+  const invalidateCatalog = () => { cachedCatalog = null; cachedCatalogAt = 0 }
+  ctx.on?.('credentials/record-updated', invalidateCatalog)
+  ctx.on?.('settings/document-updated', invalidateCatalog)
   const catalog = async ({ fresh = false } = {}) => {
     if (!fresh && cachedCatalog && Date.now() - cachedCatalogAt < 10000) return cachedCatalog
     const next = await Promise.all(ctx.llm.listProviders().map(async provider => {

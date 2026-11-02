@@ -48,6 +48,12 @@ const DISPLAY_NAMES = {
   cerebras: 'Cerebras',
   mistral: 'Mistral',
   together: 'Together AI',
+  fireworks: 'Fireworks AI',
+  nvidia: 'NVIDIA NIM',
+  huggingface: 'Hugging Face',
+  minimax: 'MiniMax',
+  zai: 'Z.AI (GLM)',
+  'vercel-ai-gateway': 'Vercel AI Gateway',
 }
 
 /** @returns a human display name for a provider id; the id itself if unmapped. */

@@ -46,8 +46,12 @@ test('installOpenCodeZen connects, declares provider profile, and disconnects cl
     configuration () { return [{ entry: { options: { id: 'llm-pi-ai' } }, override: this.section() }] },
     section: () => ({ providers: profile ? { opencode: profile } : {} }),
     describe: () => [{ ns: 'llm-pi-ai', revision, user: { providers: profile ? { opencode: profile } : {} } }],
-    async mutate (_ns, [op]) {
-      profile = op.op === 'set' ? op.value : undefined
+    async mutate (_ns, ops) {
+      for (const op of ops) {
+        if (op.path?.[0] === 'providers' && op.path?.[1] === 'opencode') {
+          profile = op.op === 'set' ? op.value : undefined
+        }
+      }
       revision++
     },
   }

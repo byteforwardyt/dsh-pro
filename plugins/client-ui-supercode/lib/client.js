@@ -277,6 +277,9 @@ body[data-dshd-desktop] [class~="uV2eYG_row"]:has(.sc-native-controls) [class~="
       const [members, setMembers] = useState((room.nextTeam?.members || room.members).map(member => ({ ...member })));
       const { modelDetails, valid, retry } = useTeamModels(data, members);
       return h(AgentPicker, { onClose }, h('p', { className: 'sc-model-editor-note' }, 'Choose models for the next plan. Saving does not run them or change your current team. You can then replan this goal or send a New goal; files and history are preserved.'),
+        h('div', { className: 'sc-template-bar', 'aria-label': 'Team actions' },
+          h('small', null, 'Quick assign:'),
+          h('button', { type: 'button', className: 'sc-template-pill', disabled: busy || !availableModels(data).length, title: 'Assign distinct connected providers across team members for cross-provider verification', onClick: () => setMembers(distributeModelsAcrossTeam(members, data)) }, 'Mix providers')),
         h(TeamModelSelect, { data, members, onChange: setMembers, disabled: busy }),
         members.map((member, index) => h(MemberForm, { key: member.id, member, index, data, details: modelDetails[keyOf(member)], onRetry: retry,
           onChange: value => setMembers(previous => previous.map(item => item.id === member.id ? value : item)) })),

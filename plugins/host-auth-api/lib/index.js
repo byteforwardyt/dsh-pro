@@ -392,11 +392,13 @@ export function apply (ctx) {
             })
             : action === 'disconnect-gateway'
               ? await directProviders.disconnectGateway()
-              : await directProviders.connectProvider({
-                provider: body.provider,
-                apiKey: body.apiKey,
-                useEnv: Boolean(body.useEnv),
-              })
+              : action === 'connect-all-env'
+                ? await directProviders.connectAllEnv()
+                : await directProviders.connectProvider({
+                  provider: body.provider,
+                  apiKey: body.apiKey,
+                  useEnv: Boolean(body.useEnv),
+                })
         return json(res, 200, next)
       } catch (error) {
         return json(res, 400, { error: error?.message || 'Could not update provider.' })

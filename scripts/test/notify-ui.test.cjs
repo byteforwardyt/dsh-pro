@@ -411,7 +411,7 @@ test('upstream still exposes the list feed and the selection call this is built 
   const navigation = runtimeTypes('navigation.d.ts', 'dsh-client-ui-workspace');
   assert.ok(navigation.includes('openSession(target: SessionTarget): void;'),
     'notification navigation no longer matches uiWorkspace');
-  const store = runtimeTypes('contract.d.ts', 'dsh-client-store', '');
+  const store = runtimeTypes('runtime.d.ts', 'dsh-cordis-client-runner');
   assert.ok(store.includes('subscribe(fn: () => void): () => void;'),
     'subscribe changed shape: the test double hands the callback nothing, and the watcher re-reads the snapshot');
 });

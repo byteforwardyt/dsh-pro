@@ -18,28 +18,42 @@
  */
 
 import { credentialKey, credentialKeyId } from '@deepseek-ai/dsh-credentials'
+import { builtinProviders } from '@earendil-works/pi-ai/providers/all'
 import { settingsNamespace, settingsAccess } from './settings-access.js'
 
 const NS = 'agent-default-model'
+const LLM_NS = 'llm-pi-ai'
 
 /** Preference order when several accounts are connected: the flagship paths first. */
 const PREFERENCE = ['openai-codex', 'xai', 'kimi-coding', 'openrouter']
+const DIRECT_PREFERENCE = [
+  'anthropic', 'deepseek', 'google', 'openai', 'opencode',
+  'groq', 'cerebras', 'mistral', 'together', 'fireworks',
+  'nvidia', 'huggingface', 'minimax', 'zai', 'vercel-ai-gateway',
+  'custom-gateway', 'ollama', 'lmstudio',
+]
 
-/** Is a credential stored for this provider? */
+/** Is a credential or keyless local/gateway profile configured for this provider? */
 async function isConfigured (ctx, provider) {
   try {
-    const record = await ctx.credentials.describeRecord(credentialKey('llm-pi-ai', provider))
-    return Boolean(record?.configured)
-  } catch {
-    return false
-  }
+    const record = await ctx.credentials?.describeRecord?.(credentialKey(LLM_NS, provider))
+    if (record?.configured) return true
+  } catch {}
+  try {
+    const settings = settingsAccess(ctx)
+    const profile = settings?.section?.(settingsNamespace(LLM_NS))?.providers?.[provider]
+    if (profile && Array.isArray(profile.models) && profile.models.length > 0 && profile.headers?.Authorization) {
+      return true
+    }
+  } catch {}
+  return false
 }
 
-/** Providers this build can sign into, in preference order, that are connected. */
+/** Providers this build can sign into or connect directly, in preference order, that are connected. */
 async function connectedProviders (ctx) {
   // credentialKeyId is the seam's own parser; splitting the key string by hand
   // would encode an assumption about its grammar that is not ours to make.
-  const registered = ctx.authorization.list()
+  const registered = (ctx.authorization?.list?.() || [])
     .map((entry) => credentialKeyId(entry.key))
     .filter(Boolean)
   const ordered = [
@@ -50,7 +64,19 @@ async function connectedProviders (ctx) {
   for (const provider of ordered) {
     if (await isConfigured(ctx, provider)) connected.push(provider)
   }
-  return connected
+  try {
+    const settings = settingsAccess(ctx)
+    const declared = Object.keys(settings?.section?.(settingsNamespace(LLM_NS))?.providers || {})
+    const directCandidates = [
+      ...DIRECT_PREFERENCE.filter((id) => declared.includes(id)),
+      ...declared.filter((id) => !DIRECT_PREFERENCE.includes(id)),
+    ]
+    for (const provider of directCandidates) {
+      if (connected.includes(provider) || registered.includes(provider)) continue
+      if (await isConfigured(ctx, provider)) connected.push(provider)
+    }
+  } catch {}
+  return { connected, registered }
 }
 
 /**
@@ -72,7 +98,7 @@ export async function ensureUsableDefaultModel (ctx) {
   const provider = current?.provider
   if (typeof provider === 'string' && provider && await isConfigured(ctx, provider)) return 'ok'
 
-  const connected = await connectedProviders(ctx)
+  const { connected, registered } = await connectedProviders(ctx)
   if (connected.length === 0) return 'no-accounts'
   const next = connected[0]
 
@@ -85,12 +111,23 @@ export async function ensureUsableDefaultModel (ctx) {
   // non-injected service is not a property on the context.
   let model
   try {
-    const llm = ctx.get('llm')
+    const llm = ctx.get?.('llm')
     const models = await llm?.listModels?.(next)
     model = models?.[0]?.id ?? models?.[0]?.model
   } catch (error) {
     ctx.logger?.warn?.(`default model: listing models for ${next} failed: ${error?.message}`)
     model = undefined
+  }
+  if ((typeof model !== 'string' || !model) && !registered.includes(next)) {
+    const profileModels = settings.section?.(settingsNamespace(LLM_NS))?.providers?.[next]?.models
+    if (Array.isArray(profileModels) && profileModels.length > 0) {
+      model = profileModels[0]?.id ?? profileModels[0]?.model
+    } else {
+      try {
+        const bundled = builtinProviders().find((p) => p.id === next)?.getModels?.()
+        model = bundled?.[0]?.id ?? bundled?.[0]?.model
+      } catch {}
+    }
   }
   if (typeof model !== 'string' || !model) return 'no-models'
 
