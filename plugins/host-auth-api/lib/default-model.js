@@ -42,7 +42,7 @@ async function isConfigured (ctx, provider) {
   try {
     const settings = settingsAccess(ctx)
     const profile = settings?.section?.(settingsNamespace(LLM_NS))?.providers?.[provider]
-    if (profile && Array.isArray(profile.models) && profile.models.length > 0 && profile.headers?.Authorization) {
+    if (profile && Array.isArray(profile.models) && profile.models.length > 0 && (profile.baseURL || profile.headers?.Authorization)) {
       return true
     }
   } catch {}

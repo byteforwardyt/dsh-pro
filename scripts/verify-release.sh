@@ -161,12 +161,22 @@ done
 # The right questions are: does the DMG carry a stapled ticket, and would
 # Gatekeeper accept the app a user actually drags out of it? Answer the second
 # by mounting the image and assessing the app inside.
-dmgs=("$RELEASE"/*.dmg)
-# Guard the count, exactly as the .app loop does. Without it a tree with no DMG
-# at all printed the ok lines from the .app section, silently skipped this whole
-# section, and finished with "all checks passed" and exit 0 — green for a
-# release that produced no artifact. (It also diverged by shell: under bash 3.2
-# the unguarded expansion aborts with "dmgs[@]: unbound variable".)
+TARGET_VERSION="${1:-}"
+shopt -s nullglob
+if [ -n "$TARGET_VERSION" ] && [ "$TARGET_VERSION" != "all" ]; then
+  dmgs=("$RELEASE"/*"$TARGET_VERSION"*.dmg)
+elif [ "$TARGET_VERSION" = "all" ]; then
+  dmgs=("$RELEASE"/*.dmg)
+else
+  # Default to the version this checkout builds, matching notarize.sh scoping.
+  VERSION="$(node -p "require('$ROOT/shell/package.json').version" 2>/dev/null || true)"
+  if [ -n "$VERSION" ]; then
+    dmgs=("$RELEASE"/*"-$VERSION-"*.dmg)
+    [ ${#dmgs[@]} -eq 0 ] && dmgs=("$RELEASE"/*.dmg)
+  else
+    dmgs=("$RELEASE"/*.dmg)
+  fi
+fi
 if [ ${#dmgs[@]} -eq 0 ]; then
   bad "no .dmg found under $RELEASE — did the build produce an artifact?"
 fi

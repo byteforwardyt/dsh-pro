@@ -1784,6 +1784,7 @@ window.__ModuleLoader__.load({
       ensureLocalStyle();
       const [direct, setDirect] = useState(null);
       const [busyAll, setBusyAll] = useState(false);
+      const [bulkError, setBulkError] = useState(null);
       useEffect(() => {
         let alive = true;
         fetch("/dsh-auth/direct", { credentials: "same-origin" })
@@ -1797,16 +1798,20 @@ window.__ModuleLoader__.load({
       const unconfiguredEnvCount = providers.filter((p) => p.envAvailable && !p.configured).length;
       const connectAllEnv = async () => {
         setBusyAll(true);
+        setBulkError(null);
         try {
-          const r = await fetch("/dsh-auth/direct", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ action: "connect-all-env" }),
-          });
-          const data = await r.json().catch(() => ({}));
-          if (r.ok && Array.isArray(data.providers)) setDirect(data);
-        } catch {}
+          const res = await post("direct", { action: "connect-all-env" });
+          if (res.ok && Array.isArray(res.providers)) {
+            setDirect(res);
+            if (Array.isArray(res.errors) && res.errors.length > 0) {
+              setBulkError(`Connected ${res.connected?.length || 0} provider(s); ${res.errors.map((e) => e.name).join(", ")} failed.`);
+            }
+          } else {
+            setBulkError(res.error || "Could not connect detected environment variables.");
+          }
+        } catch {
+          setBulkError("Network error while connecting environment variables.");
+        }
         setBusyAll(false);
       };
       return h(
@@ -1831,6 +1836,7 @@ window.__ModuleLoader__.load({
               )
             : null,
         ),
+        bulkError ? h("div", { key: "bulk-err", className: "dshd-err", role: "alert", style: { margin: "0 0 12px 0" } }, bulkError) : null,
         h(
           "p",
           { key: "p", className: "dshd-local-intro" },

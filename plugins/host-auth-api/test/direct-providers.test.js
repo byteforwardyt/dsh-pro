@@ -18,14 +18,18 @@ test('installDirectProviders connects direct API keys, bulk-imports env keys, an
   const originalFetch = globalThis.fetch
   const prevAnthropicEnv = process.env.ANTHROPIC_API_KEY
   const prevGroqEnv = process.env.GROQ_API_KEY
+  const prevDeepseekEnv = process.env.DEEPSEEK_API_KEY
   process.env.ANTHROPIC_API_KEY = 'sk-ant-env-test-key'
   process.env.GROQ_API_KEY = 'gsk-groq-env-test-key'
+  process.env.DEEPSEEK_API_KEY = 'bad key with spaces'
   t.after(() => {
     globalThis.fetch = originalFetch
     if (prevAnthropicEnv === undefined) delete process.env.ANTHROPIC_API_KEY
     else process.env.ANTHROPIC_API_KEY = prevAnthropicEnv
     if (prevGroqEnv === undefined) delete process.env.GROQ_API_KEY
     else process.env.GROQ_API_KEY = prevGroqEnv
+    if (prevDeepseekEnv === undefined) delete process.env.DEEPSEEK_API_KEY
+    else process.env.DEEPSEEK_API_KEY = prevDeepseekEnv
   })
 
   globalThis.fetch = async (url) => {
@@ -101,10 +105,13 @@ test('installDirectProviders connects direct API keys, bulk-imports env keys, an
   assert.equal(defaultProvider, 'anthropic')
   assert.ok(defaultModel.length > 0)
 
-  // 3. Bulk-connect all remaining detected env keys (Groq)
+  // 3. Bulk-connect all remaining detected env keys (Groq succeeds, DeepSeek with spaces fails safely)
   const afterBulk = await direct.connectAllEnv()
   assert.deepEqual(afterBulk.connected, ['groq'])
   assert.equal(afterBulk.providers.find((p) => p.id === 'groq').configured, true)
+  assert.equal(afterBulk.errors?.length, 1)
+  assert.equal(afterBulk.errors[0].id, 'deepseek')
+  assert.ok(afterBulk.errors[0].error.includes('whitespace'))
 
   // 4. Disconnect Anthropic and Groq
   await direct.disconnectProvider({ provider: 'groq' })

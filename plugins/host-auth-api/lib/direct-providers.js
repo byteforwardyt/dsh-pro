@@ -359,24 +359,33 @@ export function installDirectProviders (ctx) {
   const connectAllEnv = async (signal = lifetime.signal) => {
     signal?.throwIfAborted()
     const connected = []
+    const errors = []
     for (const meta of DIRECT_PROVIDERS) {
       const env = detectEnvKey(meta.envVars)
-      if (!env || /[\u0000-\u0020\u007f]/.test(env.key)) continue
+      if (!env) continue
+      if (/[\u0000-\u0020\u007f]/.test(env.key)) {
+        errors.push({ id: meta.id, name: meta.name, error: 'Key contains whitespace or invalid characters.' })
+        continue
+      }
       const recKey = credentialKey(NS, meta.id)
       const existing = await ctx.credentials?.describeRecord?.(recKey).catch(() => null)
       if (existing?.configured) continue
-      if (typeof ctx.credentials?.modifyRecord === 'function') {
-        await ctx.credentials.modifyRecord(recKey, async () => ({
-          kind: 'api-key',
-          key: env.key,
-        }))
+      try {
+        if (typeof ctx.credentials?.modifyRecord === 'function') {
+          await ctx.credentials.modifyRecord(recKey, async () => ({
+            kind: 'api-key',
+            key: env.key,
+          }))
+        }
+        await ensureProviderDeclared(ctx, meta.id)
+        connected.push(meta.id)
+      } catch (err) {
+        errors.push({ id: meta.id, name: meta.name, error: err?.message || 'Could not connect.' })
       }
-      await ensureProviderDeclared(ctx, meta.id)
-      connected.push(meta.id)
     }
     await ensureUsableDefaultModel(ctx).catch(() => {})
     const state = await refreshState(signal)
-    return { ...state, connected }
+    return { ...state, connected, errors }
   }
 
   return {
