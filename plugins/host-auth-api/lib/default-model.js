@@ -96,7 +96,8 @@ export async function ensureUsableDefaultModel (ctx) {
     return 'unavailable'
   }
   const provider = current?.provider
-  if (typeof provider === 'string' && provider && await isConfigured(ctx, provider)) return 'ok'
+  const currentModel = current?.model
+  if (typeof provider === 'string' && provider && typeof currentModel === 'string' && currentModel && await isConfigured(ctx, provider)) return 'ok'
 
   const { connected, registered } = await connectedProviders(ctx)
   if (connected.length === 0) return 'no-accounts'

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { syncLocalModels, LOCAL_SERVERS, isOurs } from '../lib/local-models.js'
+import { syncLocalModels, installLocalModels, LOCAL_SERVERS, isOurs } from '../lib/local-models.js'
 
 test('isOurs protects a user-edited local route from the reconciler', () => {
   const server = LOCAL_SERVERS[0] // ollama
@@ -77,3 +77,48 @@ test('sync survives a ctx with no get() at all', async () => {
   await syncLocalModels(ctx, state)
   assert.ok(state.ollama && state.lmstudio, 'both servers recorded')
 })
+
+test('installLocalModels calls onDeclared when a server is declared with models', async (t) => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith('/api/tags')) {
+      return { ok: true, json: async () => ({ models: [{ name: 'llama3:8b' }] }) }
+    }
+    if (String(url).endsWith('/api/show')) {
+      return { ok: true, json: async () => ({ model_info: { 'llama.context_length': 8192 } }) }
+    }
+    return { ok: false }
+  }
+  t.after(() => { globalThis.fetch = originalFetch })
+
+  const profiles = Object.create(null)
+  let revision = 0
+  const settings = {
+    configuration () { return [{ entry: { options: { id: 'llm-pi-ai' } }, override: this.section() }] },
+    section: () => ({ providers: { ...profiles } }),
+    describe: () => [{ ns: 'llm-pi-ai', revision, user: { providers: { ...profiles } } }],
+    async mutate (_ns, ops) {
+      for (const op of ops) {
+        if (op.op === 'set') profiles[op.path[1]] = op.value
+        else delete profiles[op.path[1]]
+      }
+      revision++
+    },
+  }
+  const ctx = {
+    get: (name) => (name === 'settings' ? settings : undefined),
+    logger: { info () {}, warn () {} },
+  }
+
+  const declared = []
+  const scanner = installLocalModels(ctx, 60_000, {
+    onDeclared: (id) => { declared.push(id) },
+  })
+  t.after(() => scanner.dispose())
+
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  assert.ok(declared.includes('ollama'), 'ollama should trigger onDeclared')
+  assert.equal(profiles.ollama?.displayName, 'Ollama')
+  assert.equal(profiles.ollama?.models?.[0]?.id, 'llama3:8b')
+})
+

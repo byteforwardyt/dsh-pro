@@ -86,7 +86,11 @@ export function apply (ctx) {
   }
 
   // Local model servers (Ollama, LM Studio): detect, declare, retract.
-  const localModels = installLocalModels(ctx)
+  const localModels = installLocalModels(ctx, 20_000, {
+    onDeclared: () => {
+      void ensureUsableDefaultModel(ctx).catch(() => {})
+    },
+  })
   const modelCatalog = installModelCatalog(ctx)
   const opencodeZen = installOpenCodeZen(ctx)
   const directProviders = installDirectProviders(ctx)

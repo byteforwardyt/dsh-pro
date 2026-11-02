@@ -68,7 +68,7 @@ export const DIRECT_PROVIDERS = [
     id: 'together',
     name: 'Together AI',
     sub: 'Qwen, DeepSeek & MiniMax open-weights',
-    envVars: ['TOGETHER_API_KEY'],
+    envVars: ['TOGETHER_API_KEY', 'TOGETHERAI_API_KEY'],
     keyUrl: 'https://api.together.ai/settings/api-keys',
     placeholder: 'API key…',
   },
@@ -76,7 +76,7 @@ export const DIRECT_PROVIDERS = [
     id: 'fireworks',
     name: 'Fireworks AI',
     sub: 'Fast open-weights & DeepSeek V4.1',
-    envVars: ['FIREWORKS_API_KEY'],
+    envVars: ['FIREWORKS_API_KEY', 'FIREWORKS_AI_API_KEY'],
     keyUrl: 'https://fireworks.ai/account/api-keys',
     placeholder: 'fw_…',
   },
@@ -84,7 +84,7 @@ export const DIRECT_PROVIDERS = [
     id: 'nvidia',
     name: 'NVIDIA NIM',
     sub: 'NVIDIA GPU cloud inference catalog',
-    envVars: ['NVIDIA_API_KEY'],
+    envVars: ['NVIDIA_API_KEY', 'NVIDIA_NIM_API_KEY'],
     keyUrl: 'https://build.nvidia.com',
     placeholder: 'nvapi-…',
   },
@@ -108,7 +108,7 @@ export const DIRECT_PROVIDERS = [
     id: 'zai',
     name: 'Z.AI (GLM)',
     sub: 'GLM-5.2, GLM-5 Turbo & GLM-4.7',
-    envVars: ['ZAI_API_KEY'],
+    envVars: ['ZAI_API_KEY', 'ZHIPUAI_API_KEY', 'ZHIPU_API_KEY'],
     keyUrl: 'https://open.bigmodel.cn',
     placeholder: 'API key…',
   },
@@ -210,11 +210,13 @@ export function installDirectProviders (ctx) {
   const readGatewayState = () => {
     const settings = settingsAccess(ctx)
     const profile = settings?.section?.(settingsNamespace(NS))?.providers?.[CUSTOM_GATEWAY_ID]
+    const detectedEnvURL = (process.env.OPENAI_BASE_URL || process.env.OPENAI_API_BASE || '').trim() || undefined
     if (!profile || typeof profile !== 'object') {
       return {
         configured: false,
         displayName: 'Custom Gateway',
         baseURL: '',
+        detectedEnvURL,
         models: [],
         modelCount: 0,
       }
@@ -224,6 +226,7 @@ export function installDirectProviders (ctx) {
       configured: true,
       displayName: profile.displayName || 'Custom Gateway',
       baseURL: profile.baseURL || '',
+      detectedEnvURL,
       models,
       modelCount: models.length,
     }

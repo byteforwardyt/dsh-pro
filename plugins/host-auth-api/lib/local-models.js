@@ -261,14 +261,19 @@ export async function syncLocalModels (ctx, state, { signal } = {}) {
  * @returns {{ state: object, dispose: () => void }} the live snapshot the
  * /local-models route serves, and the teardown.
  */
-export function installLocalModels (ctx, intervalMs = 20_000) {
+export function installLocalModels (ctx, intervalMs = 20_000, { onDeclared } = {}) {
   const state = {}
   const running = new Set()
   const lifetime = new AbortController()
   const pass = async server => {
     if (running.has(server.id) || lifetime.signal.aborted) return
     running.add(server.id)
-    try { await syncServer(ctx, state, server, lifetime.signal) }
+    try {
+      await syncServer(ctx, state, server, lifetime.signal)
+      if (state[server.id]?.sync === 'declared' && state[server.id]?.models?.length > 0) {
+        onDeclared?.(server.id)
+      }
+    }
     catch (error) { if (!lifetime.signal.aborted) ctx.logger?.warn?.(`local models: scan failed: ${error?.message}`) }
     finally { running.delete(server.id) }
   }

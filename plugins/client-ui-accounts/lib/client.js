@@ -1587,6 +1587,19 @@ window.__ModuleLoader__.load({
         setArmed(false);
       };
 
+      const presets = [
+        ...(gateway?.detectedEnvURL && gateway.detectedEnvURL !== baseURL
+          ? [
+              {
+                label: `Detected ENV (${gateway.detectedEnvURL.replace(/^https?:\/\//, "").slice(0, 16)}…)`,
+                name: "Custom Gateway (ENV)",
+                url: gateway.detectedEnvURL,
+              },
+            ]
+          : []),
+        ...GATEWAY_PRESETS,
+      ];
+
       return h(
         "div",
         { className: "dshd-gw-card", "data-dshd-gateway": "custom-gateway" },
@@ -1622,7 +1635,7 @@ window.__ModuleLoader__.load({
               "div",
               { key: "presets", className: "dshd-gw-presets" },
               h("span", { className: "dshd-hint", style: { fontSize: "11px", marginRight: "4px" } }, "Quick presets:"),
-              GATEWAY_PRESETS.map((preset) =>
+              presets.map((preset) =>
                 h(
                   "button",
                   {
@@ -1745,7 +1758,7 @@ window.__ModuleLoader__.load({
                     disabled: busy,
                     onClick: () => {
                       setDisplayName(gateway?.displayName || "Custom Gateway");
-                      setBaseURL(gateway?.baseURL || "http://127.0.0.1:8000/v1");
+                      setBaseURL(gateway?.baseURL || gateway?.detectedEnvURL || "http://127.0.0.1:8000/v1");
                       setModels((gateway?.models || []).join(", "));
                       setEditing(true);
                     },
